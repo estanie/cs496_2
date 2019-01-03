@@ -7,8 +7,8 @@ import com.example.q.cs496_2.fragments.AddressFragment
 import com.example.q.cs496_2.fragments.GalleryFragment
 import com.example.q.cs496_2.fragments.MusicFragment
 
-class MyPagerAdapter(fm: androidx.fragment.app.FragmentManager) : androidx.fragment.app.FragmentPagerAdapter(fm) {
-    override fun getItem(position: Int): androidx.fragment.app.Fragment {
+class MyPagerAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
+    override fun getItem(position: Int): Fragment {
         return when(position) {
             0 -> {
                 AddressFragment()
@@ -30,7 +30,7 @@ class MyPagerAdapter(fm: androidx.fragment.app.FragmentManager) : androidx.fragm
         return when (position) {
             0 -> "PhoneBook"
             1 -> "Gallery"
-            else -> return "music"
+            else -> return "Music"
         }
     }
 }
