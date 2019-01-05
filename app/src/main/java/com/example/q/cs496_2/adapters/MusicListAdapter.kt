@@ -17,7 +17,7 @@ class MusicListAdapter (val context: Context, val musicList: ArrayList<Music>) :
         return musicList.size
     }
 
-    override fun onCreateViewHoldere(parent: ViewGroup, p1: Int): Holder {
+    override fun onCreateViewHolder(parent: ViewGroup, p1: Int): Holder {
         val holder = Holder(LayoutInflater.from(context).inflate(R.layout.entry_music, parent, false))
         return holder
     }
