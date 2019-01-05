@@ -16,6 +16,7 @@ import com.example.q.cs496_2.adapters.ImageAdapter
 import com.example.q.cs496_2.asynctasks.UploadAsyncTask
 import com.example.q.cs496_2.managers.ImageManager
 import com.example.q.cs496_2.models.MyImage
+import com.facebook.login.widget.LoginButton
 import kotlinx.android.synthetic.main.fragment_gallery.view.*
 import java.io.File
 import java.io.IOException
@@ -27,7 +28,7 @@ class GalleryFragment: Fragment() {
 
     val REQUEST_IMAGE_CAPTURE = 1
     var mCurrentPhotoPath = ""
-    val IMAGE_PATH = "/storage/emulated/0/DCIM/cs496_1"
+    val IMAGE_PATH = "/storage/emulated/0/DCIM/cs496_2"
     var imageList : ArrayList<MyImage>? = null
 
     override fun onAttach(cotext: Context) {
@@ -46,11 +47,6 @@ class GalleryFragment: Fragment() {
             dispatchTakePictureIntent()
         }
         return view
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.fragment_gallery_menu, menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -72,7 +68,7 @@ class GalleryFragment: Fragment() {
     }
     // TODO(@estanie):
     private fun uploadAllImage() {
-        UploadAsyncTask(context!!, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, 0.toString())
+        // UploadAsyncTask(context!!, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, 0.toString())
     }
     // TODO(@estanie): It would be seperate to camera utils, Also do not use this way T-T. :0
     private fun dispatchTakePictureIntent() {

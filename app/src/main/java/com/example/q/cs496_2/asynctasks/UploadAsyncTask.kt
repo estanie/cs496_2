@@ -15,6 +15,8 @@ import com.android.volley.toolbox.Volley
 import com.example.q.cs496_2.managers.ImageManager
 import com.example.q.cs496_2.models.ImageInfo
 import com.facebook.AccessToken
+import com.facebook.login.Login
+import com.facebook.login.widget.LoginButton
 import com.google.gson.Gson
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -26,10 +28,12 @@ class UploadAsyncTask(): AsyncTask<String,String, String>() {
     private var accessToken = AccessToken.getCurrentAccessToken()
     private var isLoggedIn = accessToken != null && !accessToken.isExpired()
     private var isMulti : Boolean = false
+    private lateinit var button :LoginButton
 
-    constructor(context: Context, isMulti: Boolean):this() {
+    constructor(context: Context, button: LoginButton, isMulti: Boolean):this() {
         mContext = context
         this.isMulti = isMulti
+        this.button = button
     }
 
     override fun doInBackground(vararg values: String?): String {
@@ -45,8 +49,8 @@ class UploadAsyncTask(): AsyncTask<String,String, String>() {
     // TODO(@estanie): T^T 많이 안올라감...
     fun uploadImage(pos: Int) {
         if (!isLoggedIn) {
-            Toast.makeText(mContext, "Log in first", Toast.LENGTH_LONG).show()
-        } else {
+            button.callOnClick()
+        }
             val f = File(ImageManager.getImage(pos).path)
             val mRequestQueue = Volley.newRequestQueue(mContext)
             val mStringRequest = object : StringRequest(Request.Method.POST, url, { s -> }, { e ->
@@ -70,7 +74,6 @@ class UploadAsyncTask(): AsyncTask<String,String, String>() {
                 override fun retry(error: VolleyError) = Unit
             }
             mRequestQueue.add(mStringRequest)
-        }
     }
 
     fun getStringImage(bitmap: Bitmap): String {

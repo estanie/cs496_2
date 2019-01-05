@@ -42,7 +42,6 @@ class ImageAdapter(val context: Context) : RecyclerView.Adapter<ImageAdapter.Hol
             val image = ImageManager.getImage(position)
             mShortAnimationDuration = context.resources.getInteger(android.R.integer.config_shortAnimTime)
             view.imgthumb.setOnClickListener {
-                // zoomImageFromThumb(view, image)
                 val intent = Intent(context, ImageDetailActivity::class.java)
                 intent.putExtra("position", position)
                 context.startActivity(intent)

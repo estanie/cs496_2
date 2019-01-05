@@ -8,9 +8,7 @@ class DownloadAsyncTask: AsyncTask<String, String, String>() {
     private val url = "http://socrip4.kaist.ac.kr:3380/api/images/download/"
     override fun doInBackground(vararg params: String?): String {
         var urlConnection: HttpURLConnection? = null
-        try {
-            val urls = URL(url+params[0])
-            
-        }
+
+        return " "
     }
 }

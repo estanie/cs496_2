@@ -55,7 +55,10 @@ class ImageFragment: Fragment() {
             view.loginFacebookButton.registerCallback(callbackManager, facebookCallback)
         }
         view.uploadFab.setOnClickListener {
-            UploadAsyncTask(context!!, false).execute(pos.toString())
+            if (!isLoggedIn) {
+                view.loginFacebookButton.callOnClick()
+            }
+            UploadAsyncTask(context!!, view.loginFacebookButton, false).execute(pos.toString())
         }
         return view
     }
