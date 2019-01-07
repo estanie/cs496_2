@@ -1,12 +1,10 @@
 package com.example.q.cs496_2.fragments
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.example.q.cs496_2.R
-import com.example.q.cs496_2.activities.MyMusicEditActivity
 import kotlinx.android.synthetic.main.fragment_music.view.*
 
 class MusicFragment : androidx.fragment.app.Fragment() {
@@ -16,8 +14,11 @@ class MusicFragment : androidx.fragment.app.Fragment() {
         val view = inflater.inflate(R.layout.fragment_music, container, false)
         // getMy Music & from server too.
         view.newMusicButton.setOnClickListener {
-            val intent = Intent(context, MyMusicEditActivity::class.java)
-            startActivity(intent)
+            val fragment = MyMusicEditFragment()
+            val ftrans = fragmentManager!!.beginTransaction()
+            ftrans.add(R.id.musicFragment, fragment)
+            view.newMusicButton.hide()
+            ftrans.commit()
         }
         return view
     }

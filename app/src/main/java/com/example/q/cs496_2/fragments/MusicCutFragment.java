@@ -1,23 +1,6 @@
-/*
- * Copyright (C) 2008 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package com.example.q.cs496_2.music;
+package com.example.q.cs496_2.fragments;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
@@ -36,30 +19,31 @@ import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.*;
-import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import com.example.q.cs496_2.R;
+import com.example.q.cs496_2.files.SoundFile;
+import com.example.q.cs496_2.music.AfterSaveActionDialog;
+import com.example.q.cs496_2.music.FileSaveDialog;
+import com.example.q.cs496_2.music.SongMetadataReader;
 import com.example.q.cs496_2.views.MarkerView;
 import com.example.q.cs496_2.views.WaveformView;
-import com.example.q.cs496_2.files.SoundFile;
-import com.example.q.cs496_2.R;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.io.StringWriter;
 
-/**
- * The activity for the Ringdroid main editor window.  Keeps track of
- * the waveform display, current horizontal offset, marker handles,
- * start / end text boxes, and handles all of the buttons and controls.
- */
-public class MusicCutActivity extends Activity
-    implements MarkerView.MarkerListener,
-               WaveformView.WaveformListener
-{
+import static android.app.Activity.RESULT_CANCELED;
+import static android.app.Activity.RESULT_OK;
+
+public class MusicCutFragment extends Fragment implements MarkerView.MarkerListener,
+        WaveformView.WaveformListener{
     private long mLoadingLastUpdateTime;
     private boolean mLoadingKeepGoing;
     private long mRecordingLastUpdateTime;
@@ -132,6 +116,22 @@ public class MusicCutActivity extends Activity
     // Public methods and protected overrides
     //
 
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.activity_cut_music, container, false);
+        loadGui(view);
+        setHasOptionsMenu(true);
+        Bundle bundle = getArguments();
+        Log.e("BUNDLE", ""+bundle);
+        mFilename = bundle.getParcelable("filename").toString().replaceFirst("file://", "").replaceAll("%20", " ");
+        //getArguments().getBundle("").toString().replaceFirst("file://", "").replaceAll("%20", " ");
+        if (!mFilename.equals("record")) {
+            loadFromFile();
+        } else {
+            recordAudio();
+        }
+        return view;
+    }
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle icicle) {
@@ -148,29 +148,17 @@ public class MusicCutActivity extends Activity
         mRecordAudioThread = null;
         mSaveSoundFileThread = null;
 
-        Intent intent = getIntent();
-
         // If the Ringdroid media select activity was launched via a
         // GET_CONTENT intent, then we shouldn't display a "saved"
         // message when the user saves, we should just return whatever
         // they create.
-        mWasGetContentIntent = intent.getBooleanExtra("was_get_content_intent", false);
 
-        mFilename = intent.getData().toString().replaceFirst("file://", "").replaceAll("%20", " ");
         mSoundFile = null;
         mKeyDown = false;
 
         mHandler = new Handler();
 
-        loadGui();
-
         mHandler.postDelayed(mTimerRunnable, 100);
-
-        if (!mFilename.equals("record")) {
-            loadFromFile();
-        } else {
-            recordAudio();
-        }
     }
 
     private void closeThread(Thread thread) {
@@ -184,7 +172,7 @@ public class MusicCutActivity extends Activity
 
     /** Called when the activity is finally destroyed. */
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         Log.v("Ringdroid", "EditActivity OnDestroy");
 
         mLoadingKeepGoing = false;
@@ -217,15 +205,13 @@ public class MusicCutActivity extends Activity
 
     /** Called with an Activity we started with an Intent returns. */
     @Override
-    protected void onActivityResult(int requestCode,
-                                    int resultCode,
-                                    Intent dataIntent) {
+    public void onActivityResult(int requestCode, int resultCode, Intent dataIntent) {
         Log.v("Ringdroid", "EditActivity onActivityResult");
         if (requestCode == REQUEST_CODE_CHOOSE_CONTACT) {
             // The user finished saving their ringtone and they're
             // just applying it to a contact.  When they return here,
             // they're done.
-            finish();
+            getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
             return;
         }
     }
@@ -241,66 +227,60 @@ public class MusicCutActivity extends Activity
         final int saveZoomLevel = mWaveformView.getZoomLevel();
         super.onConfigurationChanged(newConfig);
 
-        loadGui();
+        loadGui(getView());
 
         mHandler.postDelayed(new Runnable() {
-                public void run() {
-                    mStartMarker.requestFocus();
-                    markerFocus(mStartMarker);
+            public void run() {
+                mStartMarker.requestFocus();
+                markerFocus(mStartMarker);
 
-                    mWaveformView.setZoomLevel(saveZoomLevel);
-                    mWaveformView.recomputeHeights(mDensity);
+                mWaveformView.setZoomLevel(saveZoomLevel);
+                mWaveformView.recomputeHeights(mDensity);
 
-                    updateDisplay();
-                }
-            }, 500);
+                updateDisplay();
+            }
+        }, 500);
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.edit_options, menu);
-
-        return true;
     }
 
     @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
+    public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
         menu.findItem(R.id.action_save).setVisible(true);
         menu.findItem(R.id.action_reset).setVisible(true);
         menu.findItem(R.id.action_about).setVisible(true);
-        return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-        case R.id.action_save:
-            onSave();
-            return true;
-        case R.id.action_reset:
-            resetPositions();
-            mOffsetGoal = 0;
-            updateDisplay();
-            return true;
-        case R.id.action_about:
-            onAbout(this);
-            return true;
-        default:
-            return false;
+            case R.id.action_save:
+                onSave();
+                return true;
+            case R.id.action_reset:
+                resetPositions();
+                mOffsetGoal = 0;
+                updateDisplay();
+                return true;
+            case R.id.action_about:
+                onAbout(this.getActivity());
+                return true;
+            default:
+                return false;
         }
     }
 
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
+    public void onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_SPACE) {
             onPlay(mStartPos);
-            return true;
         }
-
-        return super.onKeyDown(keyCode, event);
     }
+
 
     //
     // WaveformListener
@@ -342,9 +322,9 @@ public class MusicCutActivity extends Activity
         if (elapsedMsec < 300) {
             if (mIsPlaying) {
                 int seekMsec = mWaveformView.pixelsToMillisecs(
-                    (int)(mTouchStart + mOffset));
+                        (int)(mTouchStart + mOffset));
                 if (seekMsec >= mPlayStartMsec &&
-                    seekMsec < mPlayEndMsec) {
+                        seekMsec < mPlayEndMsec) {
                     mPlayer.seekTo(seekMsec);
                 } else {
                     handlePause();
@@ -490,10 +470,10 @@ public class MusicCutActivity extends Activity
         // response to a touch event, we want to receive the touch
         // event too before updating the display.
         mHandler.postDelayed(new Runnable() {
-                public void run() {
-                    updateDisplay();
-                }
-            }, 100);
+            public void run() {
+                updateDisplay();
+            }
+        }, 100);
     }
 
     //
@@ -510,11 +490,11 @@ public class MusicCutActivity extends Activity
             versionName = "unknown";
         }
         new AlertDialog.Builder(activity)
-            .setTitle(R.string.about_title)
-            .setMessage(activity.getString(R.string.about_text, versionName))
-            .setPositiveButton(R.string.alert_ok_button, null)
-            .setCancelable(false)
-            .show();
+                .setTitle(R.string.about_title)
+                .setMessage(activity.getString(R.string.about_text, versionName))
+                .setPositiveButton(R.string.alert_ok_button, null)
+                .setCancelable(false)
+                .show();
     }
 
     //
@@ -522,15 +502,14 @@ public class MusicCutActivity extends Activity
     //
 
     /**
-        * Called from both onCreate and onConfigurationChanged
+     * Called from both onCreate and onConfigurationChanged
      * (if the user switched layouts)
-        */
-    private void loadGui() {
+     */
+    private void loadGui(View view) {
         // Inflate our UI from its XML layout description.
-        setContentView(R.layout.activity_cut_music);
 
         DisplayMetrics metrics = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
         mDensity = metrics.density;
 
         mMarkerLeftInset = (int)(46 * mDensity);
@@ -538,29 +517,29 @@ public class MusicCutActivity extends Activity
         mMarkerTopOffset = (int)(10 * mDensity);
         mMarkerBottomOffset = (int)(10 * mDensity);
 
-        mStartText = (TextView)findViewById(R.id.starttext);
+        mStartText = (TextView)view.findViewById(R.id.starttext);
         mStartText.addTextChangedListener(mTextWatcher);
-        mEndText = (TextView)findViewById(R.id.endtext);
+        mEndText = (TextView)view.findViewById(R.id.endtext);
         mEndText.addTextChangedListener(mTextWatcher);
 
-        mPlayButton = (ImageButton)findViewById(R.id.play);
+        mPlayButton = (ImageButton)view.findViewById(R.id.play);
         mPlayButton.setOnClickListener(mPlayListener);
-        mRewindButton = (ImageButton)findViewById(R.id.rew);
+        mRewindButton = (ImageButton)view.findViewById(R.id.rew);
         mRewindButton.setOnClickListener(mRewindListener);
-        mFfwdButton = (ImageButton)findViewById(R.id.ffwd);
+        mFfwdButton = (ImageButton)view.findViewById(R.id.ffwd);
         mFfwdButton.setOnClickListener(mFfwdListener);
 
-        TextView markStartButton = (TextView) findViewById(R.id.mark_start);
+        TextView markStartButton = (TextView) view.findViewById(R.id.mark_start);
         markStartButton.setOnClickListener(mMarkStartListener);
-        TextView markEndButton = (TextView) findViewById(R.id.mark_end);
+        TextView markEndButton = (TextView) view.findViewById(R.id.mark_end);
         markEndButton.setOnClickListener(mMarkEndListener);
 
         enableDisableButtons();
 
-        mWaveformView = (WaveformView)findViewById(R.id.waveform);
+        mWaveformView = (WaveformView)view.findViewById(R.id.waveform);
         mWaveformView.setListener(this);
 
-        mInfo = (TextView)findViewById(R.id.info);
+        mInfo = (TextView)view.findViewById(R.id.info);
         mInfo.setText(mCaption);
 
         mMaxPos = 0;
@@ -573,14 +552,14 @@ public class MusicCutActivity extends Activity
             mMaxPos = mWaveformView.maxPos();
         }
 
-        mStartMarker = (MarkerView)findViewById(R.id.startmarker);
+        mStartMarker = (MarkerView)view.findViewById(R.id.startmarker);
         mStartMarker.setListener(this);
         mStartMarker.setAlpha(1f);
         mStartMarker.setFocusable(true);
         mStartMarker.setFocusableInTouchMode(true);
         mStartVisible = true;
 
-        mEndMarker = (MarkerView)findViewById(R.id.endmarker);
+        mEndMarker = (MarkerView)view.findViewById(R.id.endmarker);
         mEndMarker.setListener(this);
         mEndMarker.setAlpha(1f);
         mEndMarker.setFocusable(true);
@@ -592,9 +571,9 @@ public class MusicCutActivity extends Activity
 
     private void loadFromFile() {
         mFile = new File(mFilename);
-
+        Log.e("FILENAME", mFilename);
         SongMetadataReader metadataReader = new SongMetadataReader(
-            this, mFilename);
+                getActivity(), mFilename);
         mTitle = metadataReader.mTitle;
         mArtist = metadataReader.mArtist;
 
@@ -602,36 +581,35 @@ public class MusicCutActivity extends Activity
         if (mArtist != null && mArtist.length() > 0) {
             titleLabel += " - " + mArtist;
         }
-        setTitle(titleLabel);
 
         mLoadingLastUpdateTime = getCurrentTime();
         mLoadingKeepGoing = true;
         mFinishActivity = false;
-        mProgressDialog = new ProgressDialog(MusicCutActivity.this);
+        mProgressDialog = new ProgressDialog(this.getContext());
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         mProgressDialog.setTitle(R.string.progress_dialog_loading);
         mProgressDialog.setCancelable(true);
         mProgressDialog.setOnCancelListener(
-            new DialogInterface.OnCancelListener() {
-                public void onCancel(DialogInterface dialog) {
-                    mLoadingKeepGoing = false;
-                    mFinishActivity = true;
-                }
-            });
+                new DialogInterface.OnCancelListener() {
+                    public void onCancel(DialogInterface dialog) {
+                        mLoadingKeepGoing = false;
+                        mFinishActivity = true;
+                    }
+                });
         mProgressDialog.show();
 
         final SoundFile.ProgressListener listener =
-            new SoundFile.ProgressListener() {
-                public boolean reportProgress(double fractionComplete) {
-                    long now = getCurrentTime();
-                    if (now - mLoadingLastUpdateTime > 100) {
-                        mProgressDialog.setProgress(
-                                (int) (mProgressDialog.getMax() * fractionComplete));
-                        mLoadingLastUpdateTime = now;
+                new SoundFile.ProgressListener() {
+                    public boolean reportProgress(double fractionComplete) {
+                        long now = getCurrentTime();
+                        if (now - mLoadingLastUpdateTime > 100) {
+                            mProgressDialog.setProgress(
+                                    (int) (mProgressDialog.getMax() * fractionComplete));
+                            mLoadingLastUpdateTime = now;
+                        }
+                        return mLoadingKeepGoing;
                     }
-                    return mLoadingKeepGoing;
-                }
-            };
+                };
 
         // Load the sound file in a background thread
         mLoadSoundFileThread = new Thread() {
@@ -646,11 +624,11 @@ public class MusicCutActivity extends Activity
                         String err;
                         if (components.length < 2) {
                             err = getResources().getString(
-                                R.string.no_extension_error);
+                                    R.string.no_extension_error);
                         } else {
                             err = getResources().getString(
-                                R.string.bad_extension_error) + " " +
-                                components[components.length - 1];
+                                    R.string.bad_extension_error) + " " +
+                                    components[components.length - 1];
                         }
                         final String finalErr = err;
                         Runnable runnable = new Runnable() {
@@ -666,7 +644,7 @@ public class MusicCutActivity extends Activity
                     mProgressDialog.dismiss();
                     e.printStackTrace();
                     mInfoContent = e.toString();
-                    runOnUiThread(new Runnable() {
+                    getActivity().runOnUiThread(new Runnable() {
                         public void run() {
                             mInfo.setText(mInfoContent);
                         }
@@ -689,7 +667,7 @@ public class MusicCutActivity extends Activity
                     };
                     mHandler.post(runnable);
                 } else if (mFinishActivity){
-                    MusicCutActivity.this.finish();
+                    getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
             }
         };
@@ -704,24 +682,24 @@ public class MusicCutActivity extends Activity
         mRecordingLastUpdateTime = getCurrentTime();
         mRecordingKeepGoing = true;
         mFinishActivity = false;
-        AlertDialog.Builder adBuilder = new AlertDialog.Builder(MusicCutActivity.this);
+        AlertDialog.Builder adBuilder = new AlertDialog.Builder(this.getContext());
         adBuilder.setTitle(getResources().getText(R.string.progress_dialog_recording));
         adBuilder.setCancelable(true);
         adBuilder.setNegativeButton(
-            getResources().getText(R.string.progress_dialog_cancel),
-            new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) {
-                    mRecordingKeepGoing = false;
-                    mFinishActivity = true;
-                }
-            });
+                getResources().getText(R.string.progress_dialog_cancel),
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        mRecordingKeepGoing = false;
+                        mFinishActivity = true;
+                    }
+                });
         adBuilder.setPositiveButton(
-            getResources().getText(R.string.progress_dialog_stop),
-            new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int id) {
-                    mRecordingKeepGoing = false;
-                }
-            });
+                getResources().getText(R.string.progress_dialog_stop),
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        mRecordingKeepGoing = false;
+                    }
+                });
         // TODO(nfaralli): try to use a FrameLayout and pass it to the following inflate call.
         // Using null, android:layout_width etc. may not work (hence text is at the top of view).
         // On the other hand, if the text is big enough, this is good enough.
@@ -730,24 +708,24 @@ public class MusicCutActivity extends Activity
         mTimerTextView = (TextView)mAlertDialog.findViewById(R.id.record_audio_timer);
 
         final SoundFile.ProgressListener listener =
-            new SoundFile.ProgressListener() {
-                public boolean reportProgress(double elapsedTime) {
-                    long now = getCurrentTime();
-                    if (now - mRecordingLastUpdateTime > 5) {
-                        mRecordingTime = elapsedTime;
-                        // Only UI thread can update Views such as TextViews.
-                        runOnUiThread(new Runnable() {
-                            public void run() {
-                                int min = (int)(mRecordingTime/60);
-                                float sec = (float)(mRecordingTime - 60 * min);
-                                mTimerTextView.setText(String.format("%d:%05.2f", min, sec));
-                            }
-                        });
-                        mRecordingLastUpdateTime = now;
+                new SoundFile.ProgressListener() {
+                    public boolean reportProgress(double elapsedTime) {
+                        long now = getCurrentTime();
+                        if (now - mRecordingLastUpdateTime > 5) {
+                            mRecordingTime = elapsedTime;
+                            // Only UI thread can update Views such as TextViews.
+                            getActivity().runOnUiThread(new Runnable() {
+                                public void run() {
+                                    int min = (int)(mRecordingTime/60);
+                                    float sec = (float)(mRecordingTime - 60 * min);
+                                    mTimerTextView.setText(String.format("%d:%05.2f", min, sec));
+                                }
+                            });
+                            mRecordingLastUpdateTime = now;
+                        }
+                        return mRecordingKeepGoing;
                     }
-                    return mRecordingKeepGoing;
-                }
-            };
+                };
 
         // Record the audio stream in a background thread
         mRecordAudioThread = new Thread() {
@@ -759,8 +737,8 @@ public class MusicCutActivity extends Activity
                         Runnable runnable = new Runnable() {
                             public void run() {
                                 showFinalAlert(
-                                    new Exception(),
-                                    getResources().getText(R.string.record_error)
+                                        new Exception(),
+                                        getResources().getText(R.string.record_error)
                                 );
                             }
                         };
@@ -772,7 +750,7 @@ public class MusicCutActivity extends Activity
                     mAlertDialog.dismiss();
                     e.printStackTrace();
                     mInfoContent = e.toString();
-                    runOnUiThread(new Runnable() {
+                    getActivity().runOnUiThread(new Runnable() {
                         public void run() {
                             mInfo.setText(mInfoContent);
                         }
@@ -788,7 +766,7 @@ public class MusicCutActivity extends Activity
                 }
                 mAlertDialog.dismiss();
                 if (mFinishActivity){
-                    MusicCutActivity.this.finish();
+                    getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 } else {
                     Runnable runnable = new Runnable() {
                         public void run() {
@@ -820,11 +798,11 @@ public class MusicCutActivity extends Activity
             mEndPos = mMaxPos;
 
         mCaption =
-            mSoundFile.getFiletype() + ", " +
-            mSoundFile.getSampleRate() + " Hz, " +
-            mSoundFile.getAvgBitrateKbps() + " kbps, " +
-            formatTime(mMaxPos) + " " +
-            getResources().getString(R.string.time_seconds);
+                mSoundFile.getFiletype() + ", " +
+                        mSoundFile.getSampleRate() + " Hz, " +
+                        mSoundFile.getAvgBitrateKbps() + " kbps, " +
+                        formatTime(mMaxPos) + " " +
+                        getResources().getString(R.string.time_seconds);
         mInfo.setText(mCaption);
 
         updateDisplay();
@@ -887,11 +865,11 @@ public class MusicCutActivity extends Activity
         mWaveformView.invalidate();
 
         mStartMarker.setContentDescription(
-            getResources().getText(R.string.start_marker) + " " +
-            formatTime(mStartPos));
+                getResources().getText(R.string.start_marker) + " " +
+                        formatTime(mStartPos));
         mEndMarker.setContentDescription(
-            getResources().getText(R.string.end_marker) + " " +
-            formatTime(mEndPos));
+                getResources().getText(R.string.end_marker) + " " +
+                        formatTime(mEndPos));
 
         int startX = mStartPos - mOffset - mMarkerLeftInset;
         if (startX + mStartMarker.getWidth() >= 0) {
@@ -932,52 +910,52 @@ public class MusicCutActivity extends Activity
         }
 
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-            RelativeLayout.LayoutParams.WRAP_CONTENT,
-            RelativeLayout.LayoutParams.WRAP_CONTENT);
+                RelativeLayout.LayoutParams.WRAP_CONTENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT);
         params.setMargins(
-            startX,
-            mMarkerTopOffset,
-            -mStartMarker.getWidth(),
-            -mStartMarker.getHeight());
+                startX,
+                mMarkerTopOffset,
+                -mStartMarker.getWidth(),
+                -mStartMarker.getHeight());
         mStartMarker.setLayoutParams(params);
 
         params = new RelativeLayout.LayoutParams(
-            RelativeLayout.LayoutParams.WRAP_CONTENT,
-            RelativeLayout.LayoutParams.WRAP_CONTENT);
+                RelativeLayout.LayoutParams.WRAP_CONTENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT);
         params.setMargins(
-            endX,
-            mWaveformView.getMeasuredHeight() - mEndMarker.getHeight() - mMarkerBottomOffset,
-            -mStartMarker.getWidth(),
-            -mStartMarker.getHeight());
+                endX,
+                mWaveformView.getMeasuredHeight() - mEndMarker.getHeight() - mMarkerBottomOffset,
+                -mStartMarker.getWidth(),
+                -mStartMarker.getHeight());
         mEndMarker.setLayoutParams(params);
     }
 
     private Runnable mTimerRunnable = new Runnable() {
-            public void run() {
-                // Updating an EditText is slow on Android.  Make sure
-                // we only do the update if the text has actually changed.
-                if (mStartPos != mLastDisplayedStartPos &&
+        public void run() {
+            // Updating an EditText is slow on Android.  Make sure
+            // we only do the update if the text has actually changed.
+            if (mStartPos != mLastDisplayedStartPos &&
                     !mStartText.hasFocus()) {
-                    mStartText.setText(formatTime(mStartPos));
-                    mLastDisplayedStartPos = mStartPos;
-                }
-
-                if (mEndPos != mLastDisplayedEndPos &&
-                    !mEndText.hasFocus()) {
-                    mEndText.setText(formatTime(mEndPos));
-                    mLastDisplayedEndPos = mEndPos;
-                }
-
-                mHandler.postDelayed(mTimerRunnable, 100);
+                mStartText.setText(formatTime(mStartPos));
+                mLastDisplayedStartPos = mStartPos;
             }
-        };
+
+            if (mEndPos != mLastDisplayedEndPos &&
+                    !mEndText.hasFocus()) {
+                mEndText.setText(formatTime(mEndPos));
+                mLastDisplayedEndPos = mEndPos;
+            }
+
+            mHandler.postDelayed(mTimerRunnable, 100);
+        }
+    };
 
     private void enableDisableButtons() {
         if (mIsPlaying) {
-            mPlayButton.setImageResource(android.R.drawable.ic_media_pause);
+            mPlayButton.setImageResource(R.drawable.ic_round_pause);
             mPlayButton.setContentDescription(getResources().getText(R.string.stop));
         } else {
-            mPlayButton.setImageResource(android.R.drawable.ic_media_play);
+            mPlayButton.setImageResource(R.drawable.ic_round_play_arrow);
             mPlayButton.setContentDescription(getResources().getText(R.string.play));
         }
     }
@@ -1114,25 +1092,25 @@ public class MusicCutActivity extends Activity
             Log.e("Ringdroid", "Error: " + message);
             Log.e("Ringdroid", getStackTrace(e));
             title = getResources().getText(R.string.alert_title_failure);
-            setResult(RESULT_CANCELED, new Intent());
+            getActivity().setResult(RESULT_CANCELED, new Intent());
         } else {
             Log.v("Ringdroid", "Success: " + message);
             title = getResources().getText(R.string.alert_title_success);
         }
 
-        new AlertDialog.Builder(MusicCutActivity.this)
-            .setTitle(title)
-            .setMessage(message)
-            .setPositiveButton(
-                R.string.alert_ok_button,
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog,
-                                        int whichButton) {
-                        finish();
-                    }
-                })
-            .setCancelable(false)
-            .show();
+        new AlertDialog.Builder(this.getContext())
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton(
+                        R.string.alert_ok_button,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int whichButton) {
+                                getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                            }
+                        })
+                .setCancelable(false)
+                .show();
     }
 
     private void showFinalAlert(Exception e, int messageResourceId) {
@@ -1146,21 +1124,21 @@ public class MusicCutActivity extends Activity
             externalRootDir += "/";
         }
         switch(mNewFileKind) {
-        default:
-        case FileSaveDialog.FILE_KIND_MUSIC:
-            // TODO(nfaralli): can directly use Environment.getExternalStoragePublicDirectory(
-            // Environment.DIRECTORY_MUSIC).getPath() instead
-            subdir = "media/audio/music/";
-            break;
-        case FileSaveDialog.FILE_KIND_ALARM:
-            subdir = "media/audio/alarms/";
-            break;
-        case FileSaveDialog.FILE_KIND_NOTIFICATION:
-            subdir = "media/audio/notifications/";
-            break;
-        case FileSaveDialog.FILE_KIND_RINGTONE:
-            subdir = "media/audio/ringtones/";
-            break;
+            default:
+            case FileSaveDialog.FILE_KIND_MUSIC:
+                // TODO(nfaralli): can directly use Environment.getExternalStoragePublicDirectory(
+                // Environment.DIRECTORY_MUSIC).getPath() instead
+                subdir = "media/audio/music/";
+                break;
+            case FileSaveDialog.FILE_KIND_ALARM:
+                subdir = "media/audio/alarms/";
+                break;
+            case FileSaveDialog.FILE_KIND_NOTIFICATION:
+                subdir = "media/audio/notifications/";
+                break;
+            case FileSaveDialog.FILE_KIND_RINGTONE:
+                subdir = "media/audio/ringtones/";
+                break;
         }
         String parentdir = externalRootDir + subdir;
 
@@ -1213,7 +1191,7 @@ public class MusicCutActivity extends Activity
         final int duration = (int)(endTime - startTime + 0.5);
 
         // Create an indeterminate progress dialog
-        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog = new ProgressDialog(this.getContext());
         mProgressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         mProgressDialog.setTitle(R.string.progress_dialog_saving);
         mProgressDialog.setIndeterminate(true);
@@ -1275,7 +1253,7 @@ public class MusicCutActivity extends Activity
                             outFile.delete();
                         }
                         mInfoContent = e.toString();
-                        runOnUiThread(new Runnable() {
+                        getActivity().runOnUiThread(new Runnable() {
                             public void run() {
                                 mInfo.setText(mInfoContent);
                             }
@@ -1304,21 +1282,21 @@ public class MusicCutActivity extends Activity
                 // Try to load the new file to make sure it worked
                 try {
                     final SoundFile.ProgressListener listener =
-                        new SoundFile.ProgressListener() {
-                            public boolean reportProgress(double frac) {
-                                // Do nothing - we're not going to try to
-                                // estimate when reloading a saved sound
-                                // since it's usually fast, but hard to
-                                // estimate anyway.
-                                return true;  // Keep going
-                            }
-                        };
+                            new SoundFile.ProgressListener() {
+                                public boolean reportProgress(double frac) {
+                                    // Do nothing - we're not going to try to
+                                    // estimate when reloading a saved sound
+                                    // since it's usually fast, but hard to
+                                    // estimate anyway.
+                                    return true;  // Keep going
+                                }
+                            };
                     SoundFile.create(outPath, listener);
                 } catch (final Exception e) {
                     mProgressDialog.dismiss();
                     e.printStackTrace();
                     mInfoContent = e.toString();
-                    runOnUiThread(new Runnable() {
+                    getActivity().runOnUiThread(new Runnable() {
                         public void run() {
                             mInfo.setText(mInfoContent);
                         }
@@ -1337,12 +1315,12 @@ public class MusicCutActivity extends Activity
 
                 final String finalOutPath = outPath;
                 Runnable runnable = new Runnable() {
-                        public void run() {
-                            afterSavingRingtone(title,
-                                                finalOutPath,
-                                                duration);
-                        }
-                    };
+                    public void run() {
+                        afterSavingRingtone(title,
+                                finalOutPath,
+                                duration);
+                    }
+                };
                 mHandler.post(runnable);
             }
         };
@@ -1351,18 +1329,18 @@ public class MusicCutActivity extends Activity
 
     // TODO(@estnie): Bring it back to SingleMusicEditActivity
     private void afterSavingRingtone(CharSequence title,
-                                     String outPath,
+                                     final String outPath,
                                      int duration) {
         File outFile = new File(outPath);
         long fileSize = outFile.length();
         if (fileSize <= 512) {
             outFile.delete();
-            new AlertDialog.Builder(this)
-                .setTitle(R.string.alert_title_failure)
-                .setMessage(R.string.too_small_error)
-                .setPositiveButton(R.string.alert_ok_button, null)
-                .setCancelable(false)
-                .show();
+            new AlertDialog.Builder(this.getContext())
+                    .setTitle(R.string.alert_title_failure)
+                    .setMessage(R.string.too_small_error)
+                    .setPositiveButton(R.string.alert_ok_button, null)
+                    .setCancelable(false)
+                    .show();
             return;
         }
 
@@ -1389,63 +1367,62 @@ public class MusicCutActivity extends Activity
         values.put(MediaStore.Audio.Media.DURATION, duration);
 
         values.put(MediaStore.Audio.Media.IS_RINGTONE,
-                   mNewFileKind == FileSaveDialog.FILE_KIND_RINGTONE);
+                mNewFileKind == FileSaveDialog.FILE_KIND_RINGTONE);
         values.put(MediaStore.Audio.Media.IS_NOTIFICATION,
-                   mNewFileKind == FileSaveDialog.FILE_KIND_NOTIFICATION);
+                mNewFileKind == FileSaveDialog.FILE_KIND_NOTIFICATION);
         values.put(MediaStore.Audio.Media.IS_ALARM,
-                   mNewFileKind == FileSaveDialog.FILE_KIND_ALARM);
+                mNewFileKind == FileSaveDialog.FILE_KIND_ALARM);
         values.put(MediaStore.Audio.Media.IS_MUSIC,
-                   mNewFileKind == FileSaveDialog.FILE_KIND_MUSIC);
+                mNewFileKind == FileSaveDialog.FILE_KIND_MUSIC);
 
         // Insert it into the database
         Uri uri = MediaStore.Audio.Media.getContentUriForPath(outPath);
-        final Uri newUri = getContentResolver().insert(uri, values);
-        setResult(RESULT_OK, new Intent().setData(newUri));
+        final Uri newUri = getActivity().getContentResolver().insert(uri, values);
 
         // If Ringdroid was launched to get content, just return
         if (mWasGetContentIntent) {
-            finish();
+            getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
             return;
         }
 
         // There's nothing more to do with music or an alarm.  Show a
         // success message and then quit.
         if (mNewFileKind == FileSaveDialog.FILE_KIND_MUSIC ||
-            mNewFileKind == FileSaveDialog.FILE_KIND_ALARM) {
-            Toast.makeText(this,
-                           R.string.save_success_message,
-                           Toast.LENGTH_SHORT)
-                .show();
-            finish();
+                mNewFileKind == FileSaveDialog.FILE_KIND_ALARM) {
+            Toast.makeText(this.getContext(),
+                    R.string.save_success_message,
+                    Toast.LENGTH_SHORT)
+                    .show();
+            getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
             return;
         }
 
         // If it's a notification, give the user the option of making
         // this their default notification.  If they say no, we're finished.
         if (mNewFileKind == FileSaveDialog.FILE_KIND_NOTIFICATION) {
-            new AlertDialog.Builder(MusicCutActivity.this)
-                .setTitle(R.string.alert_title_success)
-                .setMessage(R.string.set_default_notification)
-                .setPositiveButton(R.string.alert_yes_button,
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog,
-                                            int whichButton) {
-                            RingtoneManager.setActualDefaultRingtoneUri(
-                                MusicCutActivity.this,
-                                RingtoneManager.TYPE_NOTIFICATION,
-                                newUri);
-                            finish();
-                        }
-                    })
-                .setNegativeButton(
-                    R.string.alert_no_button,
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int whichButton) {
-                            finish();
-                        }
-                    })
-                .setCancelable(false)
-                .show();
+            new AlertDialog.Builder(this.getContext())
+                    .setTitle(R.string.alert_title_success)
+                    .setMessage(R.string.set_default_notification)
+                    .setPositiveButton(R.string.alert_yes_button,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog,
+                                                    int whichButton) {
+                                    RingtoneManager.setActualDefaultRingtoneUri(
+                                            getContext(),
+                                            RingtoneManager.TYPE_NOTIFICATION,
+                                            newUri);
+                                    getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                                }
+                            })
+                    .setNegativeButton(
+                            R.string.alert_no_button,
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                                }
+                            })
+                    .setCancelable(false)
+                    .show();
             return;
         }
 
@@ -1454,34 +1431,42 @@ public class MusicCutActivity extends Activity
         // contact, or do nothing.
 
         final Handler handler = new Handler() {
-                public void handleMessage(Message response) {
-                    int actionId = response.arg1;
-                    switch (actionId) {
+            public void handleMessage(Message response) {
+                int actionId = response.arg1;
+                switch (actionId) {
                     case R.id.button_make_default:
                         RingtoneManager.setActualDefaultRingtoneUri(
-                            MusicCutActivity.this,
-                            RingtoneManager.TYPE_RINGTONE,
-                            newUri);
+                                getContext(),
+                                RingtoneManager.TYPE_RINGTONE,
+                                newUri);
                         Toast.makeText(
-                            MusicCutActivity.this,
-                            R.string.default_ringtone_success_message,
-                            Toast.LENGTH_SHORT)
-                            .show();
-                        finish();
+                                getContext(),
+                                R.string.default_ringtone_success_message,
+                                Toast.LENGTH_SHORT)
+                                .show();
+                        getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                         break;
                     case R.id.button_choose_contact:
                         chooseContactForRingtone(newUri);
                         break;
                     default:
                     case R.id.button_do_nothing:
-                        finish();
+                        Intent intent = new Intent();
+                        intent.putExtra("filename", outPath);
+                        getTargetFragment().onActivityResult(
+                                getTargetRequestCode(),
+                                Activity.RESULT_OK,
+                                intent
+                        );
+                        // go back
+                        // getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
                         break;
-                    }
                 }
-            };
+            }
+        };
         Message message = Message.obtain(handler);
         AfterSaveActionDialog dlog = new AfterSaveActionDialog(
-            this, message);
+                getContext(), message);
         dlog.show();
     }
 
@@ -1489,8 +1474,8 @@ public class MusicCutActivity extends Activity
         try {
             Intent intent = new Intent(Intent.ACTION_EDIT, uri);
             intent.setClassName(
-                "com.ringdroid",
-                "com.ringdroid.ChooseContactActivity");
+                    "com.ringdroid",
+                    "com.ringdroid.ChooseContactActivity");
             startActivityForResult(intent, REQUEST_CODE_CHOOSE_CONTACT);
         } catch (Exception e) {
             Log.e("Ringdroid", "Couldn't open Choose Contact window");
@@ -1503,103 +1488,103 @@ public class MusicCutActivity extends Activity
         }
 
         final Handler handler = new Handler() {
-                public void handleMessage(Message response) {
-                    CharSequence newTitle = (CharSequence)response.obj;
-                    mNewFileKind = response.arg1;
-                    saveRingtone(newTitle);
-                }
-            };
+            public void handleMessage(Message response) {
+                CharSequence newTitle = (CharSequence)response.obj;
+                mNewFileKind = response.arg1;
+                saveRingtone(newTitle);
+            }
+        };
         Message message = Message.obtain(handler);
         FileSaveDialog dlog = new FileSaveDialog(
-            this, getResources(), mTitle, message);
+                getContext(), getResources(), mTitle, message);
         dlog.show();
     }
 
-    private OnClickListener mPlayListener = new OnClickListener() {
-            public void onClick(View sender) {
-                onPlay(mStartPos);
-            }
-        };
+    private View.OnClickListener mPlayListener = new View.OnClickListener() {
+        public void onClick(View sender) {
+            onPlay(mStartPos);
+        }
+    };
 
-    private OnClickListener mRewindListener = new OnClickListener() {
-            public void onClick(View sender) {
-                if (mIsPlaying) {
-                    int newPos = mPlayer.getCurrentPosition() - 5000;
-                    if (newPos < mPlayStartMsec)
-                        newPos = mPlayStartMsec;
-                    mPlayer.seekTo(newPos);
-                } else {
-                    mStartMarker.requestFocus();
-                    markerFocus(mStartMarker);
-                }
+    private View.OnClickListener mRewindListener = new View.OnClickListener() {
+        public void onClick(View sender) {
+            if (mIsPlaying) {
+                int newPos = mPlayer.getCurrentPosition() - 5000;
+                if (newPos < mPlayStartMsec)
+                    newPos = mPlayStartMsec;
+                mPlayer.seekTo(newPos);
+            } else {
+                mStartMarker.requestFocus();
+                markerFocus(mStartMarker);
             }
-        };
+        }
+    };
 
-    private OnClickListener mFfwdListener = new OnClickListener() {
-            public void onClick(View sender) {
-                if (mIsPlaying) {
-                    int newPos = 5000 + mPlayer.getCurrentPosition();
-                    if (newPos > mPlayEndMsec)
-                        newPos = mPlayEndMsec;
-                    mPlayer.seekTo(newPos);
-                } else {
-                    mEndMarker.requestFocus();
-                    markerFocus(mEndMarker);
-                }
+    private View.OnClickListener mFfwdListener = new View.OnClickListener() {
+        public void onClick(View sender) {
+            if (mIsPlaying) {
+                int newPos = 5000 + mPlayer.getCurrentPosition();
+                if (newPos > mPlayEndMsec)
+                    newPos = mPlayEndMsec;
+                mPlayer.seekTo(newPos);
+            } else {
+                mEndMarker.requestFocus();
+                markerFocus(mEndMarker);
             }
-        };
+        }
+    };
 
-    private OnClickListener mMarkStartListener = new OnClickListener() {
-            public void onClick(View sender) {
-                if (mIsPlaying) {
-                    mStartPos = mWaveformView.millisecsToPixels(
+    private View.OnClickListener mMarkStartListener = new View.OnClickListener() {
+        public void onClick(View sender) {
+            if (mIsPlaying) {
+                mStartPos = mWaveformView.millisecsToPixels(
                         mPlayer.getCurrentPosition());
-                    updateDisplay();
-                }
+                updateDisplay();
             }
-        };
+        }
+    };
 
-    private OnClickListener mMarkEndListener = new OnClickListener() {
-            public void onClick(View sender) {
-                if (mIsPlaying) {
-                    mEndPos = mWaveformView.millisecsToPixels(
+    private View.OnClickListener mMarkEndListener = new View.OnClickListener() {
+        public void onClick(View sender) {
+            if (mIsPlaying) {
+                mEndPos = mWaveformView.millisecsToPixels(
                         mPlayer.getCurrentPosition());
-                    updateDisplay();
-                    handlePause();
-                }
+                updateDisplay();
+                handlePause();
             }
-        };
+        }
+    };
 
     private TextWatcher mTextWatcher = new TextWatcher() {
-            public void beforeTextChanged(CharSequence s, int start,
-                                          int count, int after) {
-            }
+        public void beforeTextChanged(CharSequence s, int start,
+                                      int count, int after) {
+        }
 
-            public void onTextChanged(CharSequence s,
-                                      int start, int before, int count) {
-            }
+        public void onTextChanged(CharSequence s,
+                                  int start, int before, int count) {
+        }
 
-            public void afterTextChanged(Editable s) {
-                if (mStartText.hasFocus()) {
-                    try {
-                        mStartPos = mWaveformView.secondsToPixels(
+        public void afterTextChanged(Editable s) {
+            if (mStartText.hasFocus()) {
+                try {
+                    mStartPos = mWaveformView.secondsToPixels(
                             Double.parseDouble(
-                                mStartText.getText().toString()));
-                        updateDisplay();
-                    } catch (NumberFormatException e) {
-                    }
-                }
-                if (mEndText.hasFocus()) {
-                    try {
-                        mEndPos = mWaveformView.secondsToPixels(
-                            Double.parseDouble(
-                                mEndText.getText().toString()));
-                        updateDisplay();
-                    } catch (NumberFormatException e) {
-                    }
+                                    mStartText.getText().toString()));
+                    updateDisplay();
+                } catch (NumberFormatException e) {
                 }
             }
-        };
+            if (mEndText.hasFocus()) {
+                try {
+                    mEndPos = mWaveformView.secondsToPixels(
+                            Double.parseDouble(
+                                    mEndText.getText().toString()));
+                    updateDisplay();
+                } catch (NumberFormatException e) {
+                }
+            }
+        }
+    };
 
     private long getCurrentTime() {
         return System.nanoTime() / 1000000;
@@ -1610,4 +1595,5 @@ public class MusicCutActivity extends Activity
         e.printStackTrace(new PrintWriter(writer));
         return writer.toString();
     }
+
 }

@@ -49,6 +49,11 @@ class GalleryFragment: Fragment() {
         return view
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, menuInflater)
+        menuInflater.inflate(R.menu.fragment_menu, menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_backup -> {
@@ -68,7 +73,7 @@ class GalleryFragment: Fragment() {
     }
     // TODO(@estanie):
     private fun uploadAllImage() {
-        // UploadAsyncTask(context!!, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, 0.toString())
+        UploadAsyncTask(context!!, null, true).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, 0.toString())
     }
     // TODO(@estanie): It would be seperate to camera utils, Also do not use this way T-T. :0
     private fun dispatchTakePictureIntent() {
