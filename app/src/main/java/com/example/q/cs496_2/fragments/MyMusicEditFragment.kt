@@ -35,8 +35,8 @@ class MyMusicEditFragment : Fragment() {
         var mFilename = dataIntent!!.extras.getString("filename").replaceFirst("file://", "").replace("%20", " ")
         var metadataReader = SongMetadataReader(activity as Activity, mFilename)
         // TODO(estanie): 모양은 추가가 되는디요... 왜 안보일까요...?
-        adapter!!.add(Music(metadataReader.mTitle, metadataReader.mArtist, mFilename))
-        adapter!!.notifyItemInserted(musicList.size - 1)
+        // adapter!!.add(Music(metadataReader.mTitle, metadataReader.mArtist, mFilename))
+        // adapter!!.notifyItemInserted(musicList.size - 1)
         // recyclerview에 waveformDraw
 
         //finish();  // TODO(nfaralli): why would we want to quit the app here?
