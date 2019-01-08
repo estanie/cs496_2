@@ -5,5 +5,6 @@ data class Music(
     var id: String,
     val name: String,
     val author: String,
+    val liked: Boolean,
     val path: String?
 )

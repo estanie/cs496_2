@@ -26,17 +26,14 @@ class MusicTabAdapter(fm: FragmentManager, context: Context) : FragmentPagerAdap
             1 -> {
                 MyMusicFragment()
             }
-            2 -> {
-                LikedMusicFragment()
-            }
             else -> {
-                return PlaylistMusicFragment()
+                LikedMusicFragment()
             }
         }
     }
 
     override fun getCount(): Int {
-        return 4
+        return 3
     }
 
     private lateinit var myDrawable : Drawable
@@ -60,16 +57,8 @@ class MusicTabAdapter(fm: FragmentManager, context: Context) : FragmentPagerAdap
                 sb.setSpan(span, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 return sb
             }
-            2 -> {
-                myDrawable = mContext!!.resources.getDrawable(R.drawable.ic_round_favorite_24px)
-                sb = SpannableStringBuilder(" ")
-                myDrawable.setBounds(0, 0, myDrawable.getIntrinsicWidth(), myDrawable.getIntrinsicHeight())
-                span = ImageSpan(myDrawable, ImageSpan.ALIGN_BASELINE)
-                sb.setSpan(span, 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                return sb
-            }
             else -> {
-                myDrawable = mContext!!.resources.getDrawable(R.drawable.ic_round_bookmarks_24px)
+                myDrawable = mContext!!.resources.getDrawable(R.drawable.ic_round_favorite_24px)
                 sb = SpannableStringBuilder(" ")
                 myDrawable.setBounds(0, 0, myDrawable.getIntrinsicWidth(), myDrawable.getIntrinsicHeight())
                 span = ImageSpan(myDrawable, ImageSpan.ALIGN_BASELINE)

@@ -1,15 +1,11 @@
 package com.example.q.cs496_2.fragments
 
-import android.app.Activity
-import android.content.Context
-import android.content.Intent
 import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.q.cs496_2.R
 import com.example.q.cs496_2.adapters.MusicListAdapter
@@ -97,7 +93,6 @@ class LikedMusicFragment : androidx.fragment.app.Fragment() {
 
         }
         override fun onPostExecute(result: String?) {
-
         }
 
         private fun streamToString(inputStream: InputStream): String {
@@ -118,5 +113,4 @@ class LikedMusicFragment : androidx.fragment.app.Fragment() {
             return result
         }
     }
-
 }

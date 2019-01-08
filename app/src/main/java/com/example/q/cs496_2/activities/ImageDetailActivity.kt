@@ -15,8 +15,6 @@ class ImageDetailActivity : AppCompatActivity() {
     // private var gestureDetector: GestureDetector? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestWindowFeature(Window.FEATURE_NO_TITLE)
-        supportActionBar!!.hide()
         // gestureDetector = GestureDetector(this@ImageDetailActivity, GestureListener())
         setContentView(R.layout.activity_image_detail)
 
