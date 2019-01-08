@@ -60,6 +60,8 @@ class ImageAdapter(val context: Context) : RecyclerView.Adapter<ImageAdapter.Hol
 
             Glide.with(context)
                 .load(File(image.path))
+                .thumbnail(0.1f)
+
                 .into(view.imgthumb)
         }
     }

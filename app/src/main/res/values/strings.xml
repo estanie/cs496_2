@@ -1,13 +1,9 @@
 <resources>
     <string name="app_name">cs496_2</string>
     <string name="facebook_app_id">553826638418931</string> <string name="fb_login_protocol_scheme">fb553826638418931</string>
-    <string name="ringdroid_app_name">Ringdroid</string>
-
     <!--
      Main / media select activity
      -->
-
-    <string name="main_activity_label">Ringdroid</string>
 
     <string name="search_edit_box">Search</string>
 
@@ -36,9 +32,8 @@
     <string name="what_to_do_with_ringtone">Saved!  Make this your default ringtone or assign it to a contact?</string>
     <string name="set_default_notification">Saved!  Make this your default notification?</string>
 
-    <string name="make_default_ringtone_button">Make Default</string>
-    <string name="choose_contact_ringtone_button">Assign to Contact</string>
-    <string name="do_nothing_with_ringtone_button">Close</string>
+    <string name="upload_button">업로드</string>
+    <string name="do_nothing_with_ringtone_button">닫기</string>
 
     <!-- Progress dialog text for loading, recording, or saving... -->
     <string name="progress_dialog_loading">Loading…</string>
@@ -82,9 +77,9 @@
      File Save dialog
      -->
 
-    <string name="file_save_title">Save As:</string>
-    <string name="file_save_button_save">Save</string>
-    <string name="file_save_button_cancel">Cancel</string>
+    <string name="file_save_title">다음으로 저장: </string>
+    <string name="file_save_button_save">저장</string>
+    <string name="file_save_button_cancel">취소</string>
 
     <string name="ringtone_type_label">Type:</string>
 
@@ -127,7 +122,7 @@
     <string name="alert_no_button">No, thanks.</string>
 
     <string name="save_success_message">Saved!</string>
-    <string name="default_ringtone_success_message">Changed default ringtone</string>
+    <string name="default_upload_success_message">업로드가 완료되었습니다.</string>
     <string name="default_notification_success_message">Changed default notification sound</string>
     <string name="play_error">Unable to play this media file</string>
     <string name="no_unique_filename">Unable to find unique filename</string>
@@ -155,4 +150,5 @@
     <string name="about_title">About Ringdroid</string>
     <string name="about_text"><![CDATA[Use Ringdroid to edit MP3, OGG, WAV, AAC, and AMR audio files and create ringtones, alarms, and notifications from them.\n\nTip: copy audio files to your SD card using a USB cable.\n\nTip: tap anywhere on the waveform to start playing at that position.\n\nTip: while playing, tap the word Start or End to quickly set the start and end markers to the current playback time.\n\nVersion %s\n\nDeveloper: Dominic Mazzoni, Nicolas Faralli\nGraphics: Joseph Wain\nSupport and evangelizing: Eugene Koh\nEnhancements: Dan Klufas\n\nRingdroid is free software, distributed under the Apache 2.0 license.  Source code is on github.com/google/ringdroid\n]]></string>
 
+    <string name="upload_or_not">저장이 완료되었습니다. 서버에 업로드하시겠습니까?</string>
 </resources>

@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.os.AsyncTask
 import android.util.Base64
 import android.util.Log
+import android.widget.Toast
 import com.android.volley.Request
 import com.android.volley.RetryPolicy
 import com.android.volley.VolleyError
@@ -16,11 +17,13 @@ import com.example.q.cs496_2.models.ImageInfo
 import com.facebook.AccessToken
 import com.facebook.login.widget.LoginButton
 import com.google.gson.Gson
+import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileReader
 
 class UploadAsyncTask(): AsyncTask<String,String, String>() {
-    val url = "http://socrip4.kaist.ac.kr:3380/api/images"
+    var url = ""
     var mContext: Context? = null
     private val CONNECTION_TIMEOUT = 60000
     private var accessToken = AccessToken.getCurrentAccessToken()
@@ -44,8 +47,45 @@ class UploadAsyncTask(): AsyncTask<String,String, String>() {
         return " "
     }
 
+    override fun onPostExecute(result: String?) {
+        super.onPostExecute(result)
+
+        Toast.makeText(mContext, "Uploaded!", Toast.LENGTH_LONG).show()
+    }
+    fun uploadMusic(path: String) {
+        url = "http://socrip4.kaist.ac.kr:3380/api/music/upload"
+        if (!isLoggedIn) {
+            // facebookLoginAsync.
+        }
+        var f = File(path)
+        readFileToString(path)
+/*        val mRequestQueue = Volley.newRequestQueue(mContext)
+        val mStringRequest = object: StringRequest(Request.Method.POST, url, {s-> },{e ->}) {
+            override fun getParams(): Map<String, String> {
+                val params = HashMap<String, String>(1)
+                params["music"] = readFileToString(path)
+                encoded = null
+                System.gc()
+                var gson = Gson()
+                var jsonString = gson.toJson(MusicInfo(f.name, accessToken.userId.toString()))
+                params["musicInfo"] = jsonString
+                Log.e("MUSIC_INFO", jsonString)
+
+                return params
+            }
+        }
+
+        mStringRequest.retryPolicy = object : RetryPolicy {
+            override fun getCurrentTimeout() = 15000
+            override fun getCurrentRetryCount() = 0
+            override fun retry(error: VolleyError) = Unit
+        }
+        mRequestQueue.add(mStringRequest)*/
+    }
+
     // TODO(@estanie): T^T 많이 안올라감...
     fun uploadImage(pos: Int) {
+        url = "http://socrip4.kaist.ac.kr:3380/api/images"
         if (!isLoggedIn) {
             button?.callOnClick()
         }
@@ -83,5 +123,30 @@ class UploadAsyncTask(): AsyncTask<String,String, String>() {
         stream.close()
         encoded = Base64.encodeToString(imageBytes, Base64.DEFAULT)
         return encoded!!
+    }
+
+    @Throws(java.io.IOException::class)
+    private fun readFileToString(filePath: String): String {
+
+        val fileData = StringBuffer()
+        val reader = BufferedReader(
+            FileReader(filePath)
+        )
+        var buf = CharArray(1024)
+
+        var numRead = 0
+        while (true) {
+            numRead = reader.read(buf)
+            if (numRead == -1) break
+            else {
+                val readData = String(buf, 0, numRead)
+                fileData.append(readData)
+                buf = CharArray(1024)
+            }
+        }
+
+        reader.close()
+        Log.e("FILESTRING", fileData.toString())
+        return fileData.toString()
     }
 }

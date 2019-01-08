@@ -317,7 +317,7 @@ public class MusicSelectFragment extends ListFragment implements LoaderManager.L
                     getUri());
             Toast.makeText(
                     this.getContext(),
-                    R.string.default_ringtone_success_message,
+                    R.string.default_upload_success_message,
                     Toast.LENGTH_SHORT)
                     .show();
         } else {

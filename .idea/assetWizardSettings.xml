@@ -3,11 +3,13 @@
   <component name="WizardSettings">
     <option name="children">
       <map>
+
         <entry key="imageWizard">
           <value>
             <PersistentState>
               <option name="children">
                 <map>
+
                   <entry key="imageAssetPanel">
                     <value>
                       <PersistentState>
