@@ -25,6 +25,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+
+
 import androidx.fragment.app.FragmentManager;
 import com.example.q.cs496_2.R;
 import com.example.q.cs496_2.files.SoundFile;
@@ -253,7 +255,6 @@ public class MusicCutFragment extends Fragment implements MarkerView.MarkerListe
         super.onPrepareOptionsMenu(menu);
         menu.findItem(R.id.action_save).setVisible(true);
         menu.findItem(R.id.action_reset).setVisible(true);
-        menu.findItem(R.id.action_about).setVisible(true);
     }
 
     @Override
@@ -266,9 +267,6 @@ public class MusicCutFragment extends Fragment implements MarkerView.MarkerListe
                 resetPositions();
                 mOffsetGoal = 0;
                 updateDisplay();
-                return true;
-            case R.id.action_about:
-                onAbout(this.getActivity());
                 return true;
             default:
                 return false;
@@ -1123,23 +1121,7 @@ public class MusicCutFragment extends Fragment implements MarkerView.MarkerListe
         if (!externalRootDir.endsWith("/")) {
             externalRootDir += "/";
         }
-        switch(mNewFileKind) {
-            default:
-            case FileSaveDialog.FILE_KIND_MUSIC:
-                // TODO(nfaralli): can directly use Environment.getExternalStoragePublicDirectory(
-                // Environment.DIRECTORY_MUSIC).getPath() instead
-                subdir = "media/audio/music/";
-                break;
-            case FileSaveDialog.FILE_KIND_ALARM:
-                subdir = "media/audio/alarms/";
-                break;
-            case FileSaveDialog.FILE_KIND_NOTIFICATION:
-                subdir = "media/audio/notifications/";
-                break;
-            case FileSaveDialog.FILE_KIND_RINGTONE:
-                subdir = "media/audio/ringtones/";
-                break;
-        }
+        subdir = "media/audio/music/";
         String parentdir = externalRootDir + subdir;
 
         // Create the parent directory
@@ -1366,15 +1348,6 @@ public class MusicCutFragment extends Fragment implements MarkerView.MarkerListe
         values.put(MediaStore.Audio.Media.ARTIST, artist);
         values.put(MediaStore.Audio.Media.DURATION, duration);
 
-        values.put(MediaStore.Audio.Media.IS_RINGTONE,
-                mNewFileKind == FileSaveDialog.FILE_KIND_RINGTONE);
-        values.put(MediaStore.Audio.Media.IS_NOTIFICATION,
-                mNewFileKind == FileSaveDialog.FILE_KIND_NOTIFICATION);
-        values.put(MediaStore.Audio.Media.IS_ALARM,
-                mNewFileKind == FileSaveDialog.FILE_KIND_ALARM);
-        values.put(MediaStore.Audio.Media.IS_MUSIC,
-                mNewFileKind == FileSaveDialog.FILE_KIND_MUSIC);
-
         // Insert it into the database
         Uri uri = MediaStore.Audio.Media.getContentUriForPath(outPath);
         final Uri newUri = getActivity().getContentResolver().insert(uri, values);
@@ -1385,77 +1358,25 @@ public class MusicCutFragment extends Fragment implements MarkerView.MarkerListe
             return;
         }
 
-        // There's nothing more to do with music or an alarm.  Show a
-        // success message and then quit.
-        if (mNewFileKind == FileSaveDialog.FILE_KIND_MUSIC ||
-                mNewFileKind == FileSaveDialog.FILE_KIND_ALARM) {
-            Toast.makeText(this.getContext(),
-                    R.string.save_success_message,
-                    Toast.LENGTH_SHORT)
-                    .show();
-            getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-            return;
-        }
-
-        // If it's a notification, give the user the option of making
-        // this their default notification.  If they say no, we're finished.
-        if (mNewFileKind == FileSaveDialog.FILE_KIND_NOTIFICATION) {
-            new AlertDialog.Builder(this.getContext())
-                    .setTitle(R.string.alert_title_success)
-                    .setMessage(R.string.set_default_notification)
-                    .setPositiveButton(R.string.alert_yes_button,
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog,
-                                                    int whichButton) {
-                                    RingtoneManager.setActualDefaultRingtoneUri(
-                                            getContext(),
-                                            RingtoneManager.TYPE_NOTIFICATION,
-                                            newUri);
-                                    getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                                }
-                            })
-                    .setNegativeButton(
-                            R.string.alert_no_button,
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int whichButton) {
-                                    getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                                }
-                            })
-                    .setCancelable(false)
-                    .show();
-            return;
-        }
-
-        // If we get here, that means the type is a ringtone.  There are
-        // three choices: make this your default ringtone, assign it to a
-        // contact, or do nothing.
-
         final Handler handler = new Handler() {
             public void handleMessage(Message response) {
+                Intent intent = new Intent();
+                intent.putExtra("filename", outPath);
                 int actionId = response.arg1;
                 switch (actionId) {
-                    case R.id.button_make_default:
-                        RingtoneManager.setActualDefaultRingtoneUri(
-                                getContext(),
-                                RingtoneManager.TYPE_RINGTONE,
-                                newUri);
-                        Toast.makeText(
-                                getContext(),
-                                R.string.default_ringtone_success_message,
-                                Toast.LENGTH_SHORT)
-                                .show();
-                        getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                        break;
-                    case R.id.button_choose_contact:
-                        chooseContactForRingtone(newUri);
-                        break;
-                    default:
-                    case R.id.button_do_nothing:
-                        Intent intent = new Intent();
-                        intent.putExtra("filename", outPath);
+                    case R.id.button_upload:
                         getTargetFragment().onActivityResult(
                                 getTargetRequestCode(),
                                 Activity.RESULT_OK,
+                                intent
+                        );
+                        getFragmentManager().popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                        break;
+                    default:
+                    case R.id.button_do_nothing:
+                        getTargetFragment().onActivityResult(
+                                getTargetRequestCode(),
+                                Activity.RESULT_CANCELED,
                                 intent
                         );
                         // go back

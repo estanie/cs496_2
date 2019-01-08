@@ -49,4 +49,5 @@ dependencies {
     implementation 'com.facebook.android:facebook-login:[4,5)'
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1"
     implementation 'com.android.support:support-v4:28.1.0'
+    implementation group: 'commons-io', name: 'commons-io', version: '2.6'
 }

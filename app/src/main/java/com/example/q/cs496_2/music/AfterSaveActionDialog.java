@@ -35,16 +35,10 @@ public class AfterSaveActionDialog extends Dialog {
 
         setTitle(R.string.alert_title_success);
 
-        ((Button)findViewById(R.id.button_make_default))
+        ((Button)findViewById(R.id.button_upload))
             .setOnClickListener(new View.OnClickListener() {
                     public void onClick(View view) {
-                        closeAndSendResult(R.id.button_make_default);
-                    }
-                });
-        ((Button)findViewById(R.id.button_choose_contact))
-            .setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View view) {
-                        closeAndSendResult(R.id.button_choose_contact);
+                        closeAndSendResult(R.id.button_upload);
                     }
                 });
         ((Button)findViewById(R.id.button_do_nothing))

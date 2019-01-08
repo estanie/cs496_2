@@ -5,6 +5,13 @@
     <color name="colorPrimary600">#4A6572</color>
     <color name="colorSecondary500">#F9AA33</color>
 
+    <color name="black">#000</color>
+    <color name="darkgray">#333</color>
+    <color name="gray">#666</color>
+    <color name="lightgray">#999</color>
+    <color name="whitegray">#CCC</color>
+    <color name="white">#FFF</color>
+
     <color name="background_color">#fafafa</color>
 
     <color name="waveform_selected">#FF3D7F</color>
@@ -16,9 +23,9 @@
     <color name="timecode">#ddffffdd</color>
     <color name="timecode_shadow">#aa000000</color>
 
-    <color name="type_bkgnd_alarm">#88880000</color>
-    <color name="type_bkgnd_ringtone">#88008888</color>
-    <color name="type_bkgnd_notification">#88666600</color>
-    <color name="type_bkgnd_music">#88000000</color>
-    <color name="type_bkgnd_unsupported">#88cccccc</color>
+    <color name="type_bkgnd_alarm">#CD2C24</color>
+    <color name="type_bkgnd_ringtone">#63A69F</color>
+    <color name="type_bkgnd_notification">#F2E1AC</color>
+    <color name="type_bkgnd_music">#F2836B</color>
+    <color name="type_bkgnd_unsupported">#F2594B</color>
 </resources>
