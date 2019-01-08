@@ -17,6 +17,7 @@ import com.example.q.cs496_2.asynctasks.UploadAsyncTask
 import com.example.q.cs496_2.managers.ImageManager
 import com.example.q.cs496_2.models.MyImage
 import com.facebook.login.widget.LoginButton
+import com.facebook.share.model.SharePhoto
 import kotlinx.android.synthetic.main.fragment_gallery.view.*
 import java.io.File
 import java.io.IOException
@@ -42,6 +43,8 @@ class GalleryFragment: Fragment() {
         setHasOptionsMenu(true)
         view.imageGrid.adapter = adapter
         view.imageGrid.layoutManager = GridLayoutManager(context, 3)
+
+
 
         view.addImgFab.setOnClickListener { view ->
             dispatchTakePictureIntent()

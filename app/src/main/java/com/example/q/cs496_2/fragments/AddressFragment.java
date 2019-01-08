@@ -73,7 +73,6 @@ public class AddressFragment extends Fragment {
                         adapter.addItem(name[i], address[i], "a");
                     }
                     //adapter.notifyDataSetChanged();
-                    adapter.addItem("abcd", "0101010", "a");
                     listView.setAdapter(adapter);
 
                 } catch (InterruptedException e) {
