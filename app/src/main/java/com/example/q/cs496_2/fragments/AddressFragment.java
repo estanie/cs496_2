@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.viewpager.widget.ViewPager;
 import com.example.q.cs496_2.R;
 import com.example.q.cs496_2.adapters.ListViewAdapter;
 import com.example.q.cs496_2.asynctasks.JSONGet;
@@ -26,6 +27,7 @@ public class AddressFragment extends Fragment {
     ListViewAdapter adapter = new ListViewAdapter();
     EditText insertName;
     EditText insertAddress;
+    ViewPager viewPager;
 
     public AddressFragment() {
 
@@ -33,7 +35,6 @@ public class AddressFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
         View view = inflater.inflate(R.layout.fragment_address, container, false);
 
         insertName = (EditText) view.findViewById(R.id.InsertName);
