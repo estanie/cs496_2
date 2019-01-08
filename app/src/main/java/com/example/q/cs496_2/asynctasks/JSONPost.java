@@ -11,15 +11,20 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public class JSONPost extends AsyncTask<String, String, String> {
-    EditText insertName;
-    EditText insertAddress;
+    private String insertName;
+    private String insertAddress;
+
+    public JSONPost(String name_information, String Address_infromation){
+        this.insertName = name_information;
+        this.insertAddress = Address_infromation;
+    }
 
     @Override
     protected String doInBackground(String... urls){
         try{
             JSONObject jsonObject = new JSONObject();
-            jsonObject.accumulate("user_name",insertName.getText());
-            jsonObject.accumulate("user_Address",insertAddress.getText());
+            jsonObject.accumulate("user_name",insertName);
+            jsonObject.accumulate("user_Address",insertAddress);
 
             HttpURLConnection con = null;
             BufferedReader reader = null;

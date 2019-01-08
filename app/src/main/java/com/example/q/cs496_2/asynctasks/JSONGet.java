@@ -18,10 +18,6 @@ import java.net.URL;
 
 public class JSONGet extends AsyncTask<String, String, String> {
 
-    ListView listView;
-    private ListViewAdapter adapter = new ListViewAdapter();
-    String []dataFromMongo = new String[1];
-
     @Override
     protected String doInBackground(String... urls) {
         try {
@@ -73,30 +69,6 @@ public class JSONGet extends AsyncTask<String, String, String> {
     @Override
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
-        dataFromMongo[0] = result;
-        //GetData.setText(result);
-        try {
-            adapter = new ListViewAdapter();
-            Log.d("%%%%", dataFromMongo[0]);
-            JSONArray dataArrange = new JSONArray(dataFromMongo[0]);
-            String numint = String.valueOf(dataArrange.length());
-            Log.d("%%%%", numint);
-            String [] name = new String[dataArrange.length()];
-            String [] address = new String[dataArrange.length()];
-            for(int i =0; i<dataArrange.length(); i++){
-                JSONObject jsonObject = dataArrange.getJSONObject(i);
-                name[i] = jsonObject.getString("user_name");
-                address[i] = jsonObject.getString("user_Address");
-                adapter.addItem(name[i],address[i],"a");
-            }
-            //adapter.notifyDataSetChanged();
-            adapter.addItem("abcd","0101010","a");
-            listView.setAdapter(adapter);
 
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        Log.d("%%%%", dataFromMongo[0]);
     }
 }

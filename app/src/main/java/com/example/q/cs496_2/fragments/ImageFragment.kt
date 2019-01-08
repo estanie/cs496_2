@@ -1,11 +1,10 @@
 package com.example.q.cs496_2.fragments
 
 import android.content.Intent
+import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
@@ -60,6 +59,7 @@ class ImageFragment: Fragment() {
             }
             UploadAsyncTask(context!!, view.loginFacebookButton, false).execute(pos.toString())
         }
+
         return view
     }
 
@@ -68,9 +68,36 @@ class ImageFragment: Fragment() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, menuInflater)
+        menuInflater.inflate(R.menu.fragment_menu, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            //todo : menu button클릭시 facebook upload기능 및 데이터base에 추가
+            R.id.action_backup_image -> {
+                uploadAllImage()
+                return true
+            }
+            R.id.action_facebook_upload -> {
+
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun uploadAllImage() {
+        UploadAsyncTask(context!!, null, false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, 0.toString())
+    }
+
+
     private fun loadImage(view: ImageView, path:String) {
         Glide.with(this)
             .load(File(path))
             .into(view)
     }
+
+
 }
