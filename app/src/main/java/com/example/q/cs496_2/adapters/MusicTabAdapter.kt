@@ -21,7 +21,6 @@ class MusicTabAdapter(fm: FragmentManager, context: Context) : FragmentPagerAdap
         return when(position) {
             0 -> {
                 PopularMusicFragment()
-
             }
             1 -> {
                 MyMusicFragment()

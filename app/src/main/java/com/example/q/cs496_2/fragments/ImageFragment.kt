@@ -14,13 +14,13 @@ import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.q.cs496_2.R
 import com.example.q.cs496_2.asynctasks.UploadAsyncTask
+import com.example.q.cs496_2.dialogs.facebookLoginDialog
 import com.example.q.cs496_2.managers.ImageManager
 import com.facebook.AccessToken
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginResult
-import com.facebook.share.ShareApi
 import com.facebook.share.model.SharePhoto
 import com.facebook.share.model.SharePhotoContent
 import com.facebook.share.widget.ShareDialog
@@ -31,7 +31,9 @@ import java.io.ObjectInput
 class ImageFragment: Fragment() {
     var callbackManager : CallbackManager? = null
     private var isLoggedIn : Boolean = false
+    var position = 0
     //var check_position :Int? =null
+    var loginButton : facebookLoginDialog? = null
 
     fun newInstance(pos: Int): Fragment {
         val args = Bundle()
@@ -47,7 +49,7 @@ class ImageFragment: Fragment() {
         val pos = arguments!!.getInt("position")
         var accessToken = AccessToken.getCurrentAccessToken()
         isLoggedIn = accessToken != null && !accessToken.isExpired()
-
+        position = pos
         loadImage(view.imageDetail, ImageManager.getImage(pos).path!!)
         view.loginFacebookButton.setFragment(this)
         view.loginFacebookButton.setReadPermissions("email")
@@ -63,13 +65,6 @@ class ImageFragment: Fragment() {
             }
             view.loginFacebookButton.registerCallback(callbackManager, facebookCallback)
         }
-        view.uploadFab.setOnClickListener {
-            if (!isLoggedIn) {
-                view.loginFacebookButton.callOnClick()
-            }
-            UploadAsyncTask(context!!, view.loginFacebookButton, false).execute(pos.toString())
-        }
-
         return view
     }
 
@@ -90,12 +85,17 @@ class ImageFragment: Fragment() {
         when (item.itemId) {
             //todo : menu button클릭시 facebook upload기능 및 데이터base에 추가
             R.id.action_backup_image -> {
-
+                if (!isLoggedIn) {
+                    loginButton = facebookLoginDialog(context!!)
+                    loginButton!!.show()
+                }
+                // UploadAsyncTask(context!!, view!!.loginFacebookButton, false).execute(position.toString())
             }
             R.id.action_facebook_upload -> {
                 sharePhotoToFacebook(arguments!!.getInt("position"))
             }
         }
+
         return super.onOptionsItemSelected(item)
     }
 
