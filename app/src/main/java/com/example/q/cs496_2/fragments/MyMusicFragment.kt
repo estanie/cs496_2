@@ -45,24 +45,6 @@ class MyMusicFragment : Fragment() {
     lateinit var metadataReader: SongMetadataReader
     var IS_LOGIN = 1004
 
-    override fun onStart() {
-        super.onStart()
-        var accessToken = AccessToken.getCurrentAccessToken()
-        isLoggedIn = accessToken != null && !accessToken.isExpired()
-        if (!isLoggedIn) {
-            val fragment = SettingFragment()
-            fragment.setTargetFragment(this, IS_LOGIN)
-            fragmentManager!!.beginTransaction().run {
-                add(R.id.mainLayout, fragment)
-                addToBackStack(null)
-                commit()
-            }
-        } else {
-            getDataTask(this).execute()
-        }
-    }
-
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val view = inflater.inflate(R.layout.fragment_my_music, container, false)
         // 서버에서 가져오기
@@ -236,8 +218,9 @@ class MyMusicFragment : Fragment() {
                 var link = URL(url + accessToken.userId.toString())
                 urlConnection = link.openConnection() as HttpURLConnection
                 urlConnection.connectTimeout = CONNECTION_TIMEOUT
+                Log.e("MYMUSIC", ""+urlConnection.inputStream)
                 var inString = streamToString(urlConnection.inputStream)
-                Log.e("INSTRING", inString)
+                Log.e("MYMUSIC", inString)
                 publishProgress(inString)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -252,6 +235,15 @@ class MyMusicFragment : Fragment() {
                 val gson = GsonBuilder().create()
                 mMusicList = gson.fromJson(values[0], object : TypeToken<List<Music>>() {}.type)
                 mFragment.updateAdapter(mMusicList)
+                Thread(Runnable {
+                    mFragment!!.activity!!.runOnUiThread(java.lang.Runnable {
+                        mFragment!!.musicList = mMusicList
+                        mFragment!!.adapter = MusicListAdapter(mFragment.context!!, mFragment.musicList)
+                        mFragment.view!!.musicListRecyclerView.adapter = mFragment.adapter
+                        mFragment.view!!.musicListRecyclerView.layoutManager = LinearLayoutManager(mFragment.context)
+                        mFragment!!.adapter!!.notifyDataSetChanged()
+                    })
+                }).start()
             } catch (e: Exception) {
                 e.printStackTrace()
             }

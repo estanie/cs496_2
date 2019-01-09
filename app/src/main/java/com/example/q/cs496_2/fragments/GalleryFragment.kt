@@ -64,10 +64,6 @@ class GalleryFragment: Fragment() {
                 uploadAllImage()
                 return true
             }
-            R.id.action_cloud_sync -> {
-                downloadExceptExistImage()
-                return true
-            }
             R.id.action_setting -> {
                 val fragment = SettingFragment()
                 fragment.setTargetFragment(this, IS_LOGIN)

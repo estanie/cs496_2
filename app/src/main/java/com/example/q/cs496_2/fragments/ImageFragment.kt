@@ -108,10 +108,6 @@ class ImageFragment: Fragment() {
                     UploadAsyncTask(context!!, view!!.loginFacebookButton, false).execute(position.toString())
                 }
             }
-            R.id.action_facebook_upload -> {
-                sharePhotoToFacebook(arguments!!.getInt("position"))
-
-            }
         }
 
         return super.onOptionsItemSelected(item)

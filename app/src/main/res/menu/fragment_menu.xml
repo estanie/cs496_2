@@ -5,10 +5,6 @@
           android:icon="@drawable/ic_round_backup"
           app:showAsAction="always"/>
 
-    <item android:id="@+id/action_cloud_sync"
-          android:title="sync"
-          android:icon="@drawable/ic_round_cloud_download"
-          app:showAsAction="always"/>
     <item android:id="@+id/action_setting"
           android:title="setting"
           android:icon="@drawable/ic_round_settings"

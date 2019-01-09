@@ -118,7 +118,15 @@ class LikedMusicFragment : androidx.fragment.app.Fragment() {
                 val gson = GsonBuilder().create()
                 mMusicList = gson.fromJson(values[0], object: TypeToken<List<Music>>() {}.type)
                 Log.e("LIKEMUSIC2",""+mMusicList)
-                mFragment.updateAdapter(mMusicList)
+                Thread(Runnable {
+                    mFragment!!.activity!!.runOnUiThread(java.lang.Runnable {
+                        mFragment!!.musicList = mMusicList
+                        mFragment!!.adapter = MusicListAdapter(mFragment.context!!, mFragment.musicList)
+                        mFragment.view!!.favoriteList.adapter = mFragment.adapter
+                        mFragment.view!!.favoriteList.layoutManager = LinearLayoutManager(mFragment.context)
+                        mFragment!!.adapter!!.notifyDataSetChanged()
+                    })
+                }).start()
             } catch (e: Exception) {
                 e.printStackTrace()
             }

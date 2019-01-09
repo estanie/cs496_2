@@ -4,13 +4,4 @@
           android:title="backup"
           android:icon="@drawable/ic_round_backup"
           app:showAsAction="always"/>
-
-    <item android:id="@+id/action_facebook_upload"
-          android:title="sync"
-          android:icon="@drawable/facebook_upload"
-          app:showAsAction="always"/>
-    <item android:id="@+id/action_setting"
-          android:title="setting"
-          android:icon="@drawable/ic_round_settings"
-          app:showAsAction="ifRoom"/>
 </menu>

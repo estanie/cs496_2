@@ -109,7 +109,15 @@ class PopularMusicFragment : androidx.fragment.app.Fragment() {
             try {
                 val gson = GsonBuilder().create()
                 mMusicList = gson.fromJson(values[0], object: TypeToken<List<Music>>() {}.type)
-                mFragment.updateAdapter(mMusicList)
+                Thread(Runnable {
+                    mFragment!!.activity!!.runOnUiThread(java.lang.Runnable {
+                        mFragment!!.musicList = mMusicList
+                        mFragment!!.adapter = MusicListAdapter(mFragment.context!!, mFragment.musicList)
+                        mFragment.view!!.popularList.adapter = mFragment.adapter
+                        mFragment.view!!.popularList.layoutManager = LinearLayoutManager(mFragment.context)
+                        mFragment!!.adapter!!.notifyDataSetChanged()
+                    })
+                }).start()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
