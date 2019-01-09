@@ -53,6 +53,7 @@ class LikedMusicFragment : androidx.fragment.app.Fragment() {
     override fun setUserVisibleHint(isVisibleToUser: Boolean) {
         super.setUserVisibleHint(isVisibleToUser)
         if (isVisibleToUser) {
+            Log.e("LIKED", "VISIBLE~~~")
             var accessToken = AccessToken.getCurrentAccessToken()
             isLoggedIn = accessToken != null && !accessToken.isExpired()
             if (!isLoggedIn) {

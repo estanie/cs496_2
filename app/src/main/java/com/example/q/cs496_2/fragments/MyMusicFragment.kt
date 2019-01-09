@@ -97,6 +97,7 @@ class MyMusicFragment : Fragment() {
 
     override fun setUserVisibleHint(isVisibleToUser: Boolean) {
         super.setUserVisibleHint(isVisibleToUser)
+        Log.e("MYMUSIC", "VISIBLE~~~")
         if (isVisibleToUser) {
             var accessToken = AccessToken.getCurrentAccessToken()
             isLoggedIn = accessToken != null && !accessToken.isExpired()

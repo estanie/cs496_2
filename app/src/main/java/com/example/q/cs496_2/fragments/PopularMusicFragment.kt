@@ -48,12 +48,14 @@ class PopularMusicFragment : androidx.fragment.app.Fragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val view = inflater.inflate(R.layout.fragment_popular_music, container, false)
+
         return view
     }
 
     override fun setUserVisibleHint(isVisibleToUser: Boolean) {
         super.setUserVisibleHint(isVisibleToUser)
         if (isVisibleToUser) {
+            Log.e("POPULAR", "VISIBLE~~~")
             var accessToken = AccessToken.getCurrentAccessToken()
             isLoggedIn = accessToken != null && !accessToken.isExpired()
             if (!isLoggedIn) {

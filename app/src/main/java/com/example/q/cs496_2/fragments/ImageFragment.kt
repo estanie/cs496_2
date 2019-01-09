@@ -70,13 +70,6 @@ class ImageFragment: Fragment() {
             view.loginFacebookButton.registerCallback(callbackManager, facebookCallback)
         }
 
-        view.uploadFab.setOnClickListener {
-            if (!isLoggedIn) {
-                view.loginFacebookButton.callOnClick()
-            }
-            UploadAsyncTask(context!!, view.loginFacebookButton, false).execute(pos.toString())
-        }
-
         fb_share_button = view.findViewById(R.id.fb_share_button) as ShareButton
         return view
     }
