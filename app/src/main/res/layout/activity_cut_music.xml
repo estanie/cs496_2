@@ -68,7 +68,7 @@
 
     <LinearLayout
             style="@style/ToolbarBackground"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="54dp"
             android:gravity="center">
 
@@ -110,7 +110,7 @@
 
     <LinearLayout
             style="@style/ToolbarBackground"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="54dp"
             android:gravity="center"
             android:orientation="horizontal">

@@ -167,22 +167,22 @@ public class MusicSelectFragment extends ListFragment implements LoaderManager.L
                 MediaStore.Audio.Media.IS_RINGTONE))) {
             view.setImageResource(R.drawable.ic_round_phone);
             ((View) view.getParent()).setBackgroundColor(
-                    getResources().getColor(R.color.gray));
+                    getResources().getColor(R.color.lightgray));
         } else if (0 != cursor.getInt(cursor.getColumnIndexOrThrow(
                 MediaStore.Audio.Media.IS_ALARM))) {
             view.setImageResource(R.drawable.ic_round_alarm);
             ((View) view.getParent()).setBackgroundColor(
-                    getResources().getColor(R.color.gray));
+                    getResources().getColor(R.color.lightgray));
         } else if (0 != cursor.getInt(cursor.getColumnIndexOrThrow(
                 MediaStore.Audio.Media.IS_NOTIFICATION))) {
             view.setImageResource(R.drawable.ic_round_notification_important);
             ((View) view.getParent()).setBackgroundColor(
-                    getResources().getColor(R.color.gray));
+                    getResources().getColor(R.color.lightgray));
         } else if (0 != cursor.getInt(cursor.getColumnIndexOrThrow(
                 MediaStore.Audio.Media.IS_MUSIC))) {
             view.setImageResource(R.drawable.ic_round_music_note);
             ((View) view.getParent()).setBackgroundColor(
-                    getResources().getColor(R.color.gray));
+                    getResources().getColor(R.color.lightgray));
         }
 
         String filename = cursor.getString(cursor.getColumnIndexOrThrow(

@@ -67,7 +67,6 @@ class MusicListAdapter(val context: Context, val musicList: ArrayList<Music>) :
 
             }
             itemView.musicPlayButton.setOnClickListener {
-                Toast.makeText(context, "음악을 재생합니다.", Toast.LENGTH_LONG).show()
                 var url = "http://socrip4.kaist.ac.kr:3380/api/music/stream/" + music.id
                 Log.e("URL", url)
                 try {
@@ -76,6 +75,7 @@ class MusicListAdapter(val context: Context, val musicList: ArrayList<Music>) :
                         mPlayer.reset()
                         itemView.musicPlayButton.setImageResource(R.drawable.ic_round_play_circle_outline_24px)
                     } else {
+                        Toast.makeText(context, "음악을 재생합니다.", Toast.LENGTH_LONG).show()
                         mPlayer.setDataSource(url)
                         mPlayer.prepare()
                         mPlayer.start()
