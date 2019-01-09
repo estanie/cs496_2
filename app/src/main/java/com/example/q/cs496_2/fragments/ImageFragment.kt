@@ -8,6 +8,7 @@ import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toolbar
 import androidx.fragment.app.Fragment
@@ -23,7 +24,9 @@ import com.facebook.FacebookException
 import com.facebook.login.LoginResult
 import com.facebook.share.model.SharePhoto
 import com.facebook.share.model.SharePhotoContent
+import com.facebook.share.widget.ShareButton
 import com.facebook.share.widget.ShareDialog
+import kotlinx.android.synthetic.main.fragment_image.*
 import kotlinx.android.synthetic.main.fragment_image.view.*
 import java.io.File
 import java.io.ObjectInput
@@ -33,7 +36,8 @@ class ImageFragment: Fragment() {
     private var isLoggedIn : Boolean = false
     var position = 0
     //var check_position :Int? =null
-    var loginButton : facebookLoginDialog? = null
+
+    private lateinit var fb_share_button : ShareButton
 
     fun newInstance(pos: Int): Fragment {
         val args = Bundle()
@@ -65,6 +69,15 @@ class ImageFragment: Fragment() {
             }
             view.loginFacebookButton.registerCallback(callbackManager, facebookCallback)
         }
+
+        view.uploadFab.setOnClickListener {
+            if (!isLoggedIn) {
+                view.loginFacebookButton.callOnClick()
+            }
+            UploadAsyncTask(context!!, view.loginFacebookButton, false).execute(pos.toString())
+        }
+
+        fb_share_button = view.findViewById(R.id.fb_share_button) as ShareButton
         return view
     }
 
@@ -104,6 +117,7 @@ class ImageFragment: Fragment() {
             }
             R.id.action_facebook_upload -> {
                 sharePhotoToFacebook(arguments!!.getInt("position"))
+
             }
         }
 
@@ -114,7 +128,7 @@ class ImageFragment: Fragment() {
         var check : String = pos.toString()
         Log.d("%%%%", check)
 
-        var shareDialog : ShareDialog? =null
+        //var shareDialog : ShareDialog? =null
         var imgFile = File(ImageManager.getImage(pos).path)
         var content: SharePhotoContent? = null
         if (imgFile.exists()) {
@@ -123,7 +137,8 @@ class ImageFragment: Fragment() {
             content = SharePhotoContent.Builder().addPhoto(photo).build()
             Log.d("%%", content.toString())
         }
-        shareDialog!!.show(content)
+        //shareDialog!!.show(content)
+        fb_share_button.setShareContent(content)
     }
 
     private fun loadImage(view: ImageView, path:String) {

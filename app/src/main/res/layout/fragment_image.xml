@@ -23,4 +23,12 @@
             android:visibility="invisible"
     />
 
+    <com.facebook.share.widget.ShareButton
+            android:id="@+id/fb_share_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAllCaps="true"
+            android:visibility="gone"
+    />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
