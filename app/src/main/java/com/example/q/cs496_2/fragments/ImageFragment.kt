@@ -82,14 +82,25 @@ class ImageFragment: Fragment() {
 
     override fun onOptionsItemSelected(item: MenuItem) : Boolean{
         super.onOptionsItemSelected(item)
+        var isLoggedIn : Boolean = false
+        var IS_LOGIN = 1004
         when (item.itemId) {
             //todo : menu button클릭시 facebook upload기능 및 데이터base에 추가
             R.id.action_backup_image -> {
+                var accessToken = AccessToken.getCurrentAccessToken()
+                isLoggedIn = accessToken != null && !accessToken.isExpired()
                 if (!isLoggedIn) {
-                    loginButton = facebookLoginDialog(context!!)
-                    loginButton!!.show()
+                    val fragment = SettingFragment()
+                    fragment.setTargetFragment(this, IS_LOGIN)
+                    fragmentManager!!.beginTransaction().run {
+                        add(R.id.mainLayout, fragment)
+                        addToBackStack(null)
+                        commit()
+                    }
                 }
-                // UploadAsyncTask(context!!, view!!.loginFacebookButton, false).execute(position.toString())
+                else {
+                    UploadAsyncTask(context!!, view!!.loginFacebookButton, false).execute(position.toString())
+                }
             }
             R.id.action_facebook_upload -> {
                 sharePhotoToFacebook(arguments!!.getInt("position"))

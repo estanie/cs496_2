@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.volley.*
 import com.android.volley.toolbox.StringRequest
@@ -33,17 +34,32 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.file.Files
 
-class MyMusicFragment : androidx.fragment.app.Fragment() {
+class MyMusicFragment : Fragment() {
     private var adapter: MusicListAdapter? = null
     private val REQUEST_CODE_EDIT = 1
+    private var accessToken = AccessToken.getCurrentAccessToken()
+    private var isLoggedIn = accessToken != null && !accessToken.isExpired()
     var musicList = ArrayList<Music>()
 
     var mFilename = ""
-    lateinit var metadataReader : SongMetadataReader
+    lateinit var metadataReader: SongMetadataReader
+    var IS_LOGIN = 1004
 
     override fun onStart() {
         super.onStart()
-        getDataTask(this).execute()
+        var accessToken = AccessToken.getCurrentAccessToken()
+        isLoggedIn = accessToken != null && !accessToken.isExpired()
+        if (!isLoggedIn) {
+            val fragment = SettingFragment()
+            fragment.setTargetFragment(this, IS_LOGIN)
+            fragmentManager!!.beginTransaction().run {
+                add(R.id.mainLayout, fragment)
+                addToBackStack(null)
+                commit()
+            }
+        } else {
+            getDataTask(this).execute()
+        }
     }
 
 
@@ -82,24 +98,32 @@ class MyMusicFragment : androidx.fragment.app.Fragment() {
     override fun setUserVisibleHint(isVisibleToUser: Boolean) {
         super.setUserVisibleHint(isVisibleToUser)
         if (isVisibleToUser) {
-            if (view!= null)
-                view!!.newMusicButton.show()
-        } else {
-            if (view!= null)
-                view!!.newMusicButton.hide()
+            var accessToken = AccessToken.getCurrentAccessToken()
+            isLoggedIn = accessToken != null && !accessToken.isExpired()
+            if (!isLoggedIn) {
+                val fragment = SettingFragment()
+                fragment.setTargetFragment(this, IS_LOGIN)
+                fragmentManager!!.beginTransaction().run {
+                    add(R.id.mainLayout, fragment)
+                    addToBackStack(null)
+                    commit()
+                }
+            } else {
+                getDataTask(this).execute()
+            }
         }
     }
 
-    class MusicAsyncTask(): AsyncTask<String, String, String>() {
+    class MusicAsyncTask() : AsyncTask<String, String, String>() {
         var url = ""
         var mFragment: MyMusicFragment? = null
         private val CONNECTION_TIMEOUT = 60000
         private var accessToken = AccessToken.getCurrentAccessToken()
         private var isLoggedIn = accessToken != null && !accessToken.isExpired()
-        private var encoded :String? = null
+        private var encoded: String? = null
         private var mFilename = ""
 
-        constructor(fragment: MyMusicFragment, filename: String):this() {
+        constructor(fragment: MyMusicFragment, filename: String) : this() {
             mFragment = fragment
             mFilename = filename
         }
@@ -114,14 +138,17 @@ class MyMusicFragment : androidx.fragment.app.Fragment() {
 
             Toast.makeText(mFragment!!.context, R.string.default_upload_success_message, Toast.LENGTH_LONG).show()
         }
+
         fun uploadMusic(path: String) {
             url = "http://socrip4.kaist.ac.kr:3380/api/music/upload"
+            var accessToken = AccessToken.getCurrentAccessToken()
+            isLoggedIn = accessToken != null && !accessToken.isExpired()
             if (!isLoggedIn) {
                 // facebookLoginAsync.
             }
             var f = File(path)
             val mRequestQueue = Volley.newRequestQueue(mFragment!!.context)
-            val mStringRequest = object: StringRequest(Request.Method.POST, url, { s-> },{ e ->}) {
+            val mStringRequest = object : StringRequest(Request.Method.POST, url, { s -> }, { e -> }) {
                 override fun getParams(): Map<String, String> {
                     val params = HashMap<String, String>(1)
                     encoded = Base64.encodeToString(Files.readAllBytes(f.toPath()), Base64.DEFAULT)
@@ -147,8 +174,16 @@ class MyMusicFragment : androidx.fragment.app.Fragment() {
                     Log.e("PARSE_NETWORK_RESPONSE", "여기이이이이이")
                     Thread(Runnable {
                         mFragment!!.activity!!.runOnUiThread(java.lang.Runnable {
-                        mFragment!!.musicList.add(Music(MusicId.id!!, metadataReader.mTitle, metadataReader.mArtist, false, mFilename))
-                        mFragment!!.adapter!!.notifyDataSetChanged()
+                            mFragment!!.musicList.add(
+                                Music(
+                                    MusicId.id!!,
+                                    metadataReader.mTitle,
+                                    metadataReader.mArtist,
+                                    false,
+                                    mFilename
+                                )
+                            )
+                            mFragment!!.adapter!!.notifyDataSetChanged()
                         })
                     }).start()
 
@@ -173,28 +208,31 @@ class MyMusicFragment : androidx.fragment.app.Fragment() {
         adapter!!.notifyDataSetChanged()
     }
 
-    class getDataTask(): AsyncTask<String, String, String>() {
+    class getDataTask() : AsyncTask<String, String, String>() {
 
         private var accessToken = AccessToken.getCurrentAccessToken()
         private var isLoggedIn = accessToken != null && !accessToken.isExpired()
         private val CONNECTION_TIMEOUT = 60000
         private var mMusicList = ArrayList<Music>()
         var url = "http://socrip4.kaist.ac.kr:3380/api/music/user/"
-        lateinit var mFragment : MyMusicFragment
-        constructor(fragment: MyMusicFragment):this() {
+        lateinit var mFragment: MyMusicFragment
+
+        constructor(fragment: MyMusicFragment) : this() {
             mFragment = fragment
 
         }
 
         override fun doInBackground(vararg values: String?): String {
+            var accessToken = AccessToken.getCurrentAccessToken()
+            isLoggedIn = accessToken != null && !accessToken.isExpired()
             if (!isLoggedIn) {
                 // Toast.makeText(mFragment.context, "로그인을 먼저 해주세요!", Toast.LENGTH_LONG).show()
                 return " "
             }
             var urlConnection: HttpURLConnection? = null
             try {
-                Log.e("URL", url+accessToken.userId.toString())
-                var link = URL(url+accessToken.userId.toString())
+                Log.e("URL", url + accessToken.userId.toString())
+                var link = URL(url + accessToken.userId.toString())
                 urlConnection = link.openConnection() as HttpURLConnection
                 urlConnection.connectTimeout = CONNECTION_TIMEOUT
                 var inString = streamToString(urlConnection.inputStream)
@@ -211,13 +249,14 @@ class MyMusicFragment : androidx.fragment.app.Fragment() {
         override fun onProgressUpdate(vararg values: String?) {
             try {
                 val gson = GsonBuilder().create()
-                mMusicList = gson.fromJson(values[0], object: TypeToken<List<Music>>() {}.type)
+                mMusicList = gson.fromJson(values[0], object : TypeToken<List<Music>>() {}.type)
                 mFragment.updateAdapter(mMusicList)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
 
         }
+
         override fun onPostExecute(result: String?) {
 
         }
@@ -230,11 +269,11 @@ class MyMusicFragment : androidx.fragment.app.Fragment() {
                 do {
                     line = bufferReader.readLine()
                     if (line != null) {
-                        result+=line
+                        result += line
                     }
                 } while (line != null)
                 inputStream.close()
-            } catch(ex: Exception) {
+            } catch (ex: Exception) {
                 ex.printStackTrace()
             }
             return result

@@ -7,11 +7,11 @@
         android:paddingTop="?attr/actionBarSize"
         android:layout_height="match_parent">
     <TextView
-            android:text="POPULAR MUSIC"
-            android:textSize="24sp"
+            android:text="RECENT"
+            android:textSize="12sp"
             android:layout_width="wrap_content" android:layout_height="wrap_content"
             app:layout_constraintStart_toStartOf="parent" android:layout_marginStart="8dp"
-            app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="8dp"
             app:layout_constraintTop_toTopOf="parent" android:id="@+id/textView3"/>
     <androidx.recyclerview.widget.RecyclerView

@@ -1,13 +1,18 @@
-<resources>
+<resources xmlns:android="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.MaterialComponents.Light">
         <!-- Customize your theme here. -->
+        <item name="android:actionBarStyle">@style/MyActionBar</item>
         <item name="colorPrimary">@color/colorPrimary700</item>
         <item name="colorPrimaryDark">@color/colorPrimary800</item>
         <item name="colorAccent">@color/colorSecondary500</item>
     </style>
+    <style name="MyActionBar" parent="ThemeOverlay.MaterialComponents.ActionBar">
+            <item name="android:background">#FFF</item>
+    </style>
     <style name="AudioFileInfoOverlayText">
+
         <item name="android:paddingLeft">4px</item>
         <item name="android:paddingBottom">4px</item>
         <item name="android:textColor">#ffffffff</item>

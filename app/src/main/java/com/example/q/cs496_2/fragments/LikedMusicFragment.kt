@@ -24,9 +24,20 @@ import java.net.URL
 class LikedMusicFragment : androidx.fragment.app.Fragment() {
     private var adapter: MusicListAdapter? = null
     private var musicList= ArrayList<Music>()
-
+    private var accessToken = AccessToken.getCurrentAccessToken()
+    private var isLoggedIn = accessToken != null && !accessToken.isExpired()
+    var IS_LOGIN = 1004
     override fun onStart() {
         super.onStart()
+        if (!isLoggedIn) {
+            val fragment = SettingFragment()
+            fragment.setTargetFragment(this, IS_LOGIN)
+            fragmentManager!!.beginTransaction().run {
+                add(R.id.mainLayout, fragment)
+                addToBackStack(null)
+                commit()
+            }
+        }
         getDataTask(this).execute()
     }
 
@@ -39,6 +50,24 @@ class LikedMusicFragment : androidx.fragment.app.Fragment() {
 
     }
 
+    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
+        super.setUserVisibleHint(isVisibleToUser)
+        if (isVisibleToUser) {
+            var accessToken = AccessToken.getCurrentAccessToken()
+            isLoggedIn = accessToken != null && !accessToken.isExpired()
+            if (!isLoggedIn) {
+                val fragment = SettingFragment()
+                fragment.setTargetFragment(this, IS_LOGIN)
+                fragmentManager!!.beginTransaction().run {
+                    add(R.id.mainLayout, fragment)
+                    addToBackStack(null)
+                    commit()
+                }
+            } else {
+                getDataTask(this).execute()
+            }
+        }
+    }
     fun updateAdapter(list: ArrayList<Music>) {
         musicList = list
         adapter = MusicListAdapter(context!!, musicList)
@@ -60,6 +89,8 @@ class LikedMusicFragment : androidx.fragment.app.Fragment() {
         }
 
         override fun doInBackground(vararg values: String?): String {
+            var accessToken = AccessToken.getCurrentAccessToken()
+            isLoggedIn = accessToken != null && !accessToken.isExpired()
             if (!isLoggedIn) {
                 // Toast.makeText(mFragment.context, "로그인을 먼저 해주세요!", Toast.LENGTH_LONG).show()
                 return " "

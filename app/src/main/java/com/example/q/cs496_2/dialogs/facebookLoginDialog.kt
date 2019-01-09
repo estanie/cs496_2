@@ -38,6 +38,9 @@ class facebookLoginDialog(context: Context) : Dialog(context) {
         LoginManager.getInstance().registerCallback(callbackManager, facebookCallback)
         facebookLoginButton.setReadPermissions("email")
 
+        facebookLoginButton.setOnClickListener {
+            dismiss()
+        }
         (findViewById<View>(R.id.button_do_nothing) as Button)
             .setOnClickListener { dismiss() }
     }

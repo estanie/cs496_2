@@ -58,6 +58,7 @@ class GalleryFragment: Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        var IS_LOGIN = 1004
         when (item.itemId) {
             R.id.action_backup -> {
                 uploadAllImage()
@@ -65,6 +66,16 @@ class GalleryFragment: Fragment() {
             }
             R.id.action_cloud_sync -> {
                 downloadExceptExistImage()
+                return true
+            }
+            R.id.action_setting -> {
+                val fragment = SettingFragment()
+                fragment.setTargetFragment(this, IS_LOGIN)
+                fragmentManager!!.beginTransaction().run {
+                    add(R.id.mainLayout, fragment)
+                    addToBackStack(null)
+                    commit()
+                }
                 return true
             }
         }

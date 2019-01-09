@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">cs496_2</string>
+    <string name="app_name">JIAKO</string>
     <string name="facebook_app_id">553826638418931</string> <string name="fb_login_protocol_scheme">fb553826638418931</string>
     <!--
      Main / media select activity

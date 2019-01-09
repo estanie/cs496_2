@@ -54,6 +54,8 @@ class UploadAsyncTask(): AsyncTask<String,String, String>() {
     }
     fun uploadMusic(path: String) {
         url = "http://socrip4.kaist.ac.kr:3380/api/music/upload"
+        var accessToken = AccessToken.getCurrentAccessToken()
+        isLoggedIn = accessToken != null && !accessToken.isExpired()
         if (!isLoggedIn) {
             // facebookLoginAsync.
         }
@@ -86,6 +88,8 @@ class UploadAsyncTask(): AsyncTask<String,String, String>() {
     // TODO(@estanie): T^T 많이 안올라감...
     fun uploadImage(pos: Int) {
         url = "http://socrip4.kaist.ac.kr:3380/api/images"
+        var accessToken = AccessToken.getCurrentAccessToken()
+        isLoggedIn = accessToken != null && !accessToken.isExpired()
         if (!isLoggedIn) {
             button?.callOnClick()
         }

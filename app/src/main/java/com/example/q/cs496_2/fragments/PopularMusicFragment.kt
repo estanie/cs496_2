@@ -23,16 +23,51 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class PopularMusicFragment : androidx.fragment.app.Fragment() {
+    var IS_LOGIN = 1004
     private var adapter: MusicListAdapter? = null
     private var musicList = ArrayList<Music>()
+    private var accessToken = AccessToken.getCurrentAccessToken()
+    private var isLoggedIn = accessToken != null && !accessToken.isExpired()
     override fun onStart() {
         super.onStart()
-        getDataTask(this).execute()
+        var accessToken = AccessToken.getCurrentAccessToken()
+        isLoggedIn = accessToken != null && !accessToken.isExpired()
+        if (!isLoggedIn) {
+            val fragment = SettingFragment()
+            fragment.setTargetFragment(this, IS_LOGIN)
+            fragmentManager!!.beginTransaction().run {
+                add(R.id.mainLayout, fragment)
+                addToBackStack(null)
+                commit()
+            }
+        }
+        else {
+            getDataTask(this).execute()
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val view = inflater.inflate(R.layout.fragment_popular_music, container, false)
         return view
+    }
+
+    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
+        super.setUserVisibleHint(isVisibleToUser)
+        if (isVisibleToUser) {
+            var accessToken = AccessToken.getCurrentAccessToken()
+            isLoggedIn = accessToken != null && !accessToken.isExpired()
+            if (!isLoggedIn) {
+                val fragment = SettingFragment()
+                fragment.setTargetFragment(this, IS_LOGIN)
+                fragmentManager!!.beginTransaction().run {
+                    add(R.id.mainLayout, fragment)
+                    addToBackStack(null)
+                    commit()
+                }
+            } else {
+                getDataTask(this).execute()
+            }
+        }
     }
 
     fun updateAdapter(list: ArrayList<Music>) {
@@ -43,9 +78,6 @@ class PopularMusicFragment : androidx.fragment.app.Fragment() {
         adapter!!.notifyDataSetChanged()
     }
     class getDataTask(): AsyncTask<String, String, String>() {
-
-        private var accessToken = AccessToken.getCurrentAccessToken()
-        private var isLoggedIn = accessToken != null && !accessToken.isExpired()
         private val CONNECTION_TIMEOUT = 60000
         private var mMusicList = ArrayList<Music>()
         var url = "http://socrip4.kaist.ac.kr:3380/api/music/popular"
